@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#17131F">
+<title>Hot Phrase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#17131F;
+  --surface:#241D2E;
+  --surface-2:#2F2639;
+  --line:#3D3348;
+  --chalk:#F5EFEA;
+  --muted:#9C8FA8;
+  --ember:#FF5E3A;
+  --flare:#FFD23F;
+  --mint:#4ED9A4;
+  --heat:0;
+  --display:'Bricolage Grotesque','Arial Black',system-ui,sans-serif;
+  --mono:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;margin:0;overscroll-behavior:none;}
+body{
+  background:var(--ink);
+  color:var(--chalk);
+  font-family:var(--mono);
+  touch-action:manipulation;
+  user-select:none;
+  -webkit-user-select:none;
+}
+button,input,select{font:inherit;color:inherit;}
+button{border:0;background:none;cursor:pointer;}
+:focus-visible{outline:2px solid var(--flare);outline-offset:3px;}
+
+/* ---- shell ---- */
+#app{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:max(10px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom));
+  gap:10px;
+}
+/* signature: heat rises from the bottom edge as the round burns down */
+#glow{
+  position:fixed;left:0;right:0;bottom:0;height:70%;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 100% at 50% 130%, rgba(255,94,58,.85), rgba(255,94,58,0) 62%);
+  opacity:calc(var(--heat) * .5);
+  transition:opacity .35s linear;
+}
+#app > *{position:relative;z-index:1;}
+
+/* ---- top bar ---- */
+.topbar{display:flex;align-items:center;gap:8px;}
+.icon-btn{
+  width:44px;height:44px;border-radius:14px;background:var(--surface);
+  display:grid;place-items:center;border:1px solid var(--line);flex:none;
+}
+.icon-btn svg{width:20px;height:20px;stroke:var(--chalk);fill:none;stroke-width:1.8;}
+.icon-btn.armed{background:var(--flare);border-color:var(--flare);}
+.icon-btn.armed svg{stroke:#1B1206;}
+.scores{
+  flex:1;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+}
+.scores::-webkit-scrollbar{display:none}
+.chip{
+  flex:1 0 auto;min-width:0;padding:6px 10px;border-radius:12px;background:var(--surface);
+  border:1px solid var(--line);border-left-width:4px;
+  display:flex;align-items:baseline;gap:8px;
+}
+.chip .nm{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:11ch;}
+.chip .sc{font-size:17px;font-weight:700;margin-left:auto;}
+
+/* ---- start ---- */
+.start{
+  width:100%;padding:16px;border-radius:18px;font-family:var(--display);font-weight:800;
+  font-size:22px;letter-spacing:.02em;text-transform:uppercase;
+  background:var(--flare);color:#1B1206;
+  box-shadow:0 6px 0 #C79A18;
+  transition:transform .08s ease, box-shadow .08s ease;
+}
+.start:active{transform:translateY(4px);box-shadow:0 2px 0 #C79A18;}
+.start.live{background:var(--surface);color:var(--muted);box-shadow:0 6px 0 #1B1622;border:1px solid var(--line);}
+.start.live.armed{background:var(--ember);color:#200C06;border-color:var(--ember);box-shadow:0 6px 0 #B93A1F;font-size:18px;}
+
+/* ---- stage ---- */
+.stage{
+  flex:1;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px;gap:14px;overflow:hidden;
+}
+.cat{
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--flare);
+  display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;
+  border:1px dashed var(--line);white-space:nowrap;max-width:100%;
+}
+.cat span{overflow:hidden;text-overflow:ellipsis;}
+.cat.locked{opacity:.5;border-style:solid;}
+.wordbox{flex:1;width:100%;display:grid;place-items:center;min-height:0;}
+.word{
+  font-family:var(--display);font-weight:800;line-height:.95;text-align:center;
+  letter-spacing:-.02em;text-wrap:balance;word-break:break-word;
+}
+.hint{color:var(--muted);font-size:12px;letter-spacing:.06em;text-align:center;line-height:1.7;}
+
+/* ---- scoring ---- */
+.ask{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.teamgrid{width:100%;display:grid;gap:8px;grid-template-columns:1fr;}
+.teamgrid.two{grid-template-columns:1fr 1fr;}
+.pointbtn{
+  padding:18px 10px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line);
+  border-bottom:4px solid var(--tc,var(--ember));
+  font-family:var(--display);font-weight:700;font-size:17px;line-height:1.1;
+}
+.pointbtn:active{transform:translateY(2px);}
+.pointbtn small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-top:5px;}
+
+/* ---- next ---- */
+.next{
+  width:100%;padding:20px;border-radius:18px;font-family:var(--display);font-weight:800;
+  font-size:24px;text-transform:uppercase;letter-spacing:.02em;
+  background:var(--surface);border:1px solid var(--line);color:var(--muted);
+  box-shadow:0 6px 0 #171222;transition:transform .08s,box-shadow .08s,background .12s,color .12s;
+}
+.next.on{background:var(--ember);color:#200C06;border-color:var(--ember);box-shadow:0 6px 0 #B93A1F;}
+.next.armed{background:var(--flare);color:#1B1206;border-color:var(--flare);box-shadow:0 6px 0 #C79A18;font-size:19px;}
+.next:active{transform:translateY(4px);box-shadow:0 2px 0 #171222;}
+
+/* ---- sheets / modals ---- */
+.scrim{
+  position:fixed;inset:0;background:rgba(8,6,12,.72);z-index:20;display:none;
+  align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);
+}
+.scrim.open{display:flex;}
+.sheet{
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:var(--ink);
+  border:1px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;
+  padding:18px 16px calc(24px + env(safe-area-inset-bottom));
+  animation:rise .22s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes rise{from{transform:translateY(18px);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{font-family:var(--display);font-size:22px;margin:0 0 14px;letter-spacing:-.01em;}
+.sheet h3{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--flare);
+  margin:22px 0 8px;font-weight:400;}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+.row:last-child{border-bottom:0;}
+.row label{flex:1;font-size:13px;}
+.row .sub{display:block;color:var(--muted);font-size:11px;margin-top:3px;}
+input[type=text],input[type=number],select,textarea{
+  background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 11px;
+  font-size:14px;width:100%;-webkit-appearance:none;appearance:none;
+}
+input[type=number]{width:76px;text-align:center;}
+.row select{width:auto;flex:1;min-width:110px;}
+textarea{min-height:120px;font-size:13px;line-height:1.5;resize:vertical;}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden;}
+.stepper button{width:40px;height:38px;background:var(--surface);font-size:18px;}
+.stepper span{width:38px;text-align:center;font-weight:700;}
+.pill{
+  padding:9px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+}
+.pill.solid{background:var(--flare);color:#1B1206;border-color:var(--flare);font-weight:700;}
+.pill.danger{border-color:#6B2A2A;color:#FF9B8A;}
+.catrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);}
+.catrow .info{flex:1;min-width:0;}
+.catrow .n{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.catrow .c{font-size:11px;color:var(--muted);margin-top:2px;}
+.tick{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--surface);
+  display:grid;place-items:center;font-size:13px;flex:none;}
+.tick.on{background:var(--mint);border-color:var(--mint);color:#062018;}
+.pickrow{
+  width:100%;display:flex;align-items:center;gap:12px;padding:15px 14px;margin-bottom:8px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;text-align:left;
+}
+.pickrow.sel{border-color:var(--flare);background:var(--surface-2);}
+.pickrow .n{flex:1;font-family:var(--display);font-size:17px;font-weight:700;}
+.pickrow .c{font-size:11px;color:var(--muted);}
+.note{color:var(--muted);font-size:11px;line-height:1.6;margin:10px 0 0;}
+
+/* ---- win ---- */
+#win{
+  position:fixed;inset:0;z-index:30;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;
+  background:var(--ink);
+}
+#win.open{display:flex;}
+#win .lbl{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);}
+#win .who{font-family:var(--display);font-weight:800;font-size:clamp(40px,13vw,84px);line-height:.9;color:var(--flare);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<div id="glow"></div>
+
+<div id="app">
+  <div class="topbar">
+    <button class="icon-btn" id="gear" aria-label="Game settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v2.4M12 19.1v2.4M21.5 12h-2.4M4.9 12H2.5M18.7 5.3l-1.7 1.7M7 17l-1.7 1.7M18.7 18.7 17 17M7 7 5.3 5.3"/></svg>
+    </button>
+    <div class="scores" id="scores"></div>
+  </div>
+
+  <button class="start" id="start">Start round</button>
+
+  <div class="stage">
+    <button class="cat" id="cat"><span id="catName">All categories</span>▾</button>
+    <div class="wordbox" id="wordbox">
+      <div class="word" id="word"></div>
+    </div>
+    <div class="teamgrid" id="teamgrid" hidden></div>
+  </div>
+
+  <button class="next" id="next">Next</button>
+</div>
+
+<!-- category picker -->
+<div class="scrim" id="pickScrim"><div class="sheet">
+  <h2>Pick a category</h2>
+  <div id="pickList"></div>
+  <p class="note">Add your own lists from the gear menu.</p>
+</div></div>
+
+<!-- settings -->
+<div class="scrim" id="setScrim"><div class="sheet">
+  <h2>Game settings</h2>
+
+  <h3>Teams</h3>
+  <div class="row">
+    <label>How many teams</label>
+    <div class="stepper"><button id="teamMinus">–</button><span id="teamCount">2</span><button id="teamPlus">+</button></div>
+  </div>
+  <div id="teamNames"></div>
+
+  <h3>Winning</h3>
+  <div class="row">
+    <label>Points to win<span class="sub">First team to reach this wins</span></label>
+    <input type="number" id="target" min="1" max="99" inputmode="numeric">
+  </div>
+  <div class="row">
+    <label>Reset the scoreboard</label>
+    <button class="pill danger" id="resetScores">Reset</button>
+  </div>
+
+  <h3>Timer</h3>
+  <div class="row">
+    <label>Shortest round<span class="sub">seconds</span></label>
+    <input type="number" id="minT" min="5" max="300" inputmode="numeric">
+  </div>
+  <div class="row">
+    <label>Longest round<span class="sub">seconds</span></label>
+    <input type="number" id="maxT" min="5" max="300" inputmode="numeric">
+  </div>
+
+  <h3>Sound</h3>
+  <div class="row">
+    <label style="flex:none">Ticks</label>
+    <select id="sound">
+      <option value="beep">Beep</option>
+      <option value="tick">Tick</option>
+      <option value="wood">Woodblock</option>
+      <option value="digital">Digital</option>
+      <option value="silent">Silent</option>
+    </select>
+    <button class="pill" data-test="tick">Test</button>
+  </div>
+  <div class="row">
+    <label style="flex:none">Buzzer</label>
+    <select id="buzzer">
+      <option value="klaxon">Klaxon</option>
+      <option value="airhorn">Air horn</option>
+      <option value="gameshow">Game show</option>
+      <option value="siren">Siren</option>
+      <option value="bells">Alarm bells</option>
+      <option value="silent">Silent</option>
+    </select>
+    <button class="pill" data-test="buzzer">Test</button>
+  </div>
+  <div class="row">
+    <label style="flex:none">Victory</label>
+    <select id="victory">
+      <option value="fanfare">Fanfare</option>
+      <option value="arcade">Arcade</option>
+      <option value="chimes">Chimes</option>
+      <option value="anthem">Anthem</option>
+      <option value="silent">Silent</option>
+    </select>
+    <button class="pill" data-test="victory">Test</button>
+  </div>
+  <div class="row">
+    <label>Vibrate<span class="sub" id="vibNote">Buzz on every tick, at the buzzer, and on a win</span></label>
+    <button class="pill" id="vibBtn">Off</button>
+  </div>
+  <div class="row">
+    <label>Volume</label>
+    <input type="range" id="vol" min="0" max="100" step="5" style="width:130px;padding:0">
+  </div>
+
+  <h3>Categories</h3>
+  <div id="catList"></div>
+  <div class="row" style="gap:8px;flex-wrap:wrap;border-bottom:0;padding-top:14px">
+    <button class="pill solid" id="importBtn">Import CSV</button>
+    <button class="pill" id="pasteBtn">Paste a list</button>
+    <input type="file" id="file" accept=".csv,.txt,text/csv,text/plain" multiple hidden>
+  </div>
+  <div id="pasteWrap" hidden>
+    <textarea id="pasteBox" placeholder="Category name&#10;first word&#10;second word&#10;third word"></textarea>
+    <div class="row" style="border-bottom:0"><button class="pill solid" id="pasteSave">Add category</button>
+      <button class="pill" id="pasteCancel">Cancel</button></div>
+  </div>
+  <p class="note">One column: the first row is the category name, every row under it is a word or phrase. Importing a name that already exists replaces it.</p>
+
+  <div class="row" style="border-bottom:0;padding-top:20px">
+    <button class="pill solid" style="flex:1;text-align:center" id="setDone">Done</button>
+  </div>
+</div></div>
+
+<div id="win">
+  <div class="lbl">Winner</div>
+  <div class="who" id="winWho"></div>
+  <button class="start" style="max-width:280px" id="playAgain">Play again</button>
+</div>
+
+<script>
+/* ============================= word lists ============================= */
+const BUILTIN = {
+"Everyday Things":["Alarm clock","Shopping cart","Traffic light","Paper clip","Bubble wrap","Shoelace","Sunglasses","Umbrella","Wallet","Ice cube","Rubber band","Toothbrush","Doorbell","Backpack","Stapler","Flashlight","Key ring","Duct tape","Grocery bag","Coffee mug","Sticky note","Garden hose","Vending machine","Escalator","Speed bump","Parking meter","Shopping list","Bandage","Piggy bank","Zipper","Mailbox","Cardboard box","Wristwatch","Ladder","Fire hydrant"],
+"Food & Drink":["Pineapple","Pancakes","Hot sauce","Peanut butter","Sourdough bread","Ice cream cone","Taco truck","Scrambled eggs","Corn on the cob","Birthday cake","Root beer","Cotton candy","Grilled cheese","Salad dressing","Popcorn","Pepperoni pizza","Chicken wings","Maple syrup","Sushi roll","Watermelon","Onion rings","Milkshake","Barbecue sauce","Garlic bread","Ramen","Doughnut","Guacamole","Cheeseburger","Iced coffee","Meatball","Pretzel","Apple pie","Beef jerky","Fortune cookie","Mashed potatoes"],
+"Animals":["Penguin","Octopus","Rattlesnake","Hummingbird","Grizzly bear","Jellyfish","Chameleon","Kangaroo","Bumblebee","Great white shark","Flamingo","Porcupine","Sea turtle","Golden retriever","Bald eagle","Hermit crab","Rhinoceros","Praying mantis","Sloth","Peacock","Walrus","Tarantula","Raccoon","Woodpecker","Killer whale","Meerkat","Hedgehog","Alligator","Pelican","Camel","Firefly","Mountain goat","Barn owl","Starfish","Armadillo"],
+"Movies & TV":["Movie theater","Popcorn bucket","Sequel","Plot twist","Red carpet","Horror movie","Cartoon","Talk show","Game show","Documentary","Cliffhanger","Sound effect","Stunt double","Costume","Movie poster","Binge watching","Remote control","Streaming","Blooper","Opening credits","Movie trailer","Cameo","Superhero","Villain","Subtitle","Screenplay","Box office","Live audience","Reality show","Soap opera","Special effects","Screen time","Action scene","Cliff jump","Award show"],
+"Sports & Games":["Home run","Slam dunk","Referee","Penalty kick","Bowling ball","Hole in one","Ping pong","Hockey stick","Marathon","Scoreboard","Time out","Hula hoop","Jump rope","Rock climbing","Ice skating","Tug of war","Chess board","Hide and seek","Skateboard","Fishing rod","Deck of cards","Dodgeball","Surfboard","Shin guard","Water balloon","Tackle","Whistle","Fantasy league","Cheerleader","Locker room","Halftime","Roller coaster","Video game","Board game","Coin toss"],
+"Around the House":["Junk drawer","Ceiling fan","Laundry basket","Front porch","Kitchen sink","Smoke detector","Garage door","Light switch","Bunk bed","Window blinds","Vacuum cleaner","Bathroom mirror","Welcome mat","Dining table","Refrigerator","Extension cord","Trash can","Coffee table","Bookshelf","Air conditioner","Washing machine","Cutting board","Shower curtain","Toaster oven","Space heater","Sprinkler","Screen door","Pillowcase","Fire extinguisher","Attic","Doorknob","Basement","Thermostat","Dishwasher","Picture frame"],
+"Travel & Places":["Airport security","Road trip","Suitcase","Passport","Hotel lobby","Gas station","Tourist trap","Beach towel","Mountain trail","Train station","Rest stop","Postcard","Camping tent","Cruise ship","Rental car","Jet lag","Boarding pass","Souvenir shop","Waterfall","National park","Subway map","Traffic jam","Sunscreen","Ferry ride","Lighthouse","Desert","Ski lodge","Sand dune","City skyline","Bike path","Amusement park","Motel","Border crossing","Carry on bag","Scenic overlook"],
+"Jobs & People":["Firefighter","Dentist","Bus driver","Mail carrier","Lifeguard","Plumber","Photographer","Park ranger","Bank teller","Electrician","Flight attendant","Substitute teacher","Barber","Chef","Nurse","Farmer","Mechanic","Librarian","Tour guide","Construction worker","Referee","Babysitter","Real estate agent","Truck driver","Veterinarian","Pharmacist","Janitor","Coach","Cashier","Landscaper","Welder","Pilot","Waiter","Security guard","Accountant"],
+"Music":["Drum solo","Guitar pick","Karaoke","Headphones","Music festival","Vinyl record","Encore","Marching band","Air guitar","Sing along","Piano keys","Beat drop","Concert ticket","Sound check","Choir","National anthem","Bass line","Playlist","Ringtone","Kazoo","Harmonica","Elevator music","Dance floor","Backup singer","Trumpet","One hit wonder","Lullaby","Whistling","Cowbell","Radio station","Jukebox","Speaker","Country music","Lyrics","Tambourine"],
+"Actions":["Sneezing","Tiptoeing","Juggling","Yawning","Whispering","Cartwheel","High five","Blowing bubbles","Wrestling","Sleepwalking","Daydreaming","Eavesdropping","Tickling","Snoring","Stretching","Skipping","Hiccups","Shivering","Winking","Somersault","Clapping","Gargling","Piggyback ride","Thumb war","Shrugging","Face palm","Tripping","Waving","Squinting","Belly flop","Fist bump","Slouching","Dodging","Balancing","Wiggling"]
+};
+
+/* ============================= storage ============================= */
+const mem = {};
+const store = {
+  async get(k, def){
+    try{
+      if(!window.storage) return k in mem ? mem[k] : def;
+      const r = await window.storage.get(k);
+      return r && r.value ? JSON.parse(r.value) : def;
+    }catch(e){ return k in mem ? mem[k] : def; }
+  },
+  async set(k, v){
+    mem[k] = v;
+    try{ if(window.storage) await window.storage.set(k, JSON.stringify(v)); }catch(e){}
+  }
+};
+
+/* ============================= state ============================= */
+const TEAM_COLORS = ["#FF5E3A","#4ED9A4","#FFD23F","#56A8F5","#B57BFF","#FF7BC5"];
+const ALL = "__ALL__";
+
+let S = {                 // settings
+  teams:[{name:"Team 1",score:0},{name:"Team 2",score:0}],
+  target:7, minT:15, maxT:30,
+  sound:"beep", buzzer:"klaxon", victory:"fanfare", vibrate:false, vol:70,
+  disabled:[], category:ALL
+};
+let custom = {};          // {name:[words]}
+let recent = [];          // last 20 words used
+let phase = "idle";       // idle | playing | scoring
+let endAt = 0, dur = 0, beepT = null, endT = null, glowT = null;
+let armed = false, armT = null;
+
+const $ = id => document.getElementById(id);
+const el = {
+  glow:$("glow"), scores:$("scores"), start:$("start"), cat:$("cat"), catName:$("catName"),
+  word:$("word"), wordbox:$("wordbox"), teamgrid:$("teamgrid"), next:$("next")
+};
+
+/* ============================= audio ============================= */
+let ac = null;
+function audio(){
+  try{
+    if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state === "suspended") ac.resume();
+  }catch(e){}
+  return ac;
+}
+function tone(freq, dur, type, gain, delay, sweepTo){
+  const c = audio(); if(!c) return;
+  const t0 = c.currentTime + (delay || 0);
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t0);
+  if(sweepTo) o.frequency.linearRampToValueAtTime(sweepTo, t0 + dur);
+  const v = gain * (S.vol/100);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0002), t0 + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function tick(heat){
+  if(S.vibrate && navigator.vibrate) navigator.vibrate(heat > .7 ? 40 : 18);
+  if(S.sound === "silent" || S.vol === 0) return;
+  const p = 1 + heat * 0.35;
+  if(S.sound === "beep")    tone(760*p, .07, "sine", .30);
+  if(S.sound === "tick")    tone(1500*p, .022, "square", .16);
+  if(S.sound === "wood"){   tone(430*p, .05, "triangle", .34); tone(880*p, .03, "sine", .12); }
+  if(S.sound === "digital"){tone(600*p, .045, "square", .18); tone(900*p, .045, "square", .10); }
+}
+const BUZZERS = {
+  klaxon(){
+    tone(150, 1.30, "sawtooth", .40);
+    tone(97,  1.30, "square",   .26);
+    tone(140,  .90, "sawtooth", .32, .42);
+  },
+  airhorn(){
+    [220, 277, 330].forEach(f =>{
+      tone(f,        1.5, "sawtooth", .18);
+      tone(f * 1.007, 1.5, "sawtooth", .14);
+    });
+  },
+  gameshow(){
+    tone(110, 1.6, "square", .32);
+    tone(117, 1.6, "square", .28);
+  },
+  siren(){
+    for(let i = 0; i < 3; i++){
+      tone(420, .32, "sawtooth", .26, i * .64, 940);
+      tone(940, .30, "sawtooth", .26, i * .64 + .32, 420);
+    }
+  },
+  bells(){
+    for(let i = 0; i < 7; i++){
+      tone(1760, .16, "sine", .28, i * .17);
+      tone(2349, .14, "sine", .16, i * .17);
+    }
+  },
+  silent(){}
+};
+const VICTORY = {
+  fanfare(){
+    [[523,0,.14],[659,.14,.14],[784,.28,.14],[1047,.42,.60]].forEach(([f,t,d])=>{
+      tone(f,   d, "sawtooth", .15, t);
+      tone(f/2, d, "triangle", .13, t);
+    });
+    tone(1568, .60, "triangle", .09, .42);
+  },
+  arcade(){
+    [[659,0,.10],[784,.10,.10],[1047,.20,.10],[1319,.30,.10],[1047,.42,.10],[1319,.52,.50]]
+      .forEach(([f,t,d])=> tone(f, d, "square", .14, t));
+    tone(330, .75, "triangle", .11, .30);
+  },
+  chimes(){
+    [[1047,0],[1319,.16],[1568,.32],[2093,.48]].forEach(([f,t])=>{
+      tone(f,     1.2, "sine", .22, t);
+      tone(f * 2,  .70, "sine", .05, t);
+    });
+  },
+  anthem(){
+    [[392,0,.50],[523,.50,.50],[659,1.00,.50],[784,1.50,1.10]].forEach(([f,t,d])=>{
+      tone(f,   d, "triangle", .20, t);
+      tone(f/2, d, "sine",     .13, t);
+    });
+    tone(1047, 1.10, "triangle", .10, 1.50);
+  },
+  silent(){}
+};
+function buzz(){
+  if(S.vibrate && navigator.vibrate) navigator.vibrate([300,90,300,90,420]);
+  if(S.vol === 0) return;
+  (BUZZERS[S.buzzer] || BUZZERS.klaxon)();
+}
+function victoryPlay(){
+  if(S.vibrate && navigator.vibrate) navigator.vibrate([120,80,120,80,140,80,500]);
+  if(S.vol === 0) return;
+  (VICTORY[S.victory] || VICTORY.fanfare)();
+}
+
+/* ============================= categories ============================= */
+function allCats(){
+  const out = {};
+  for(const k in BUILTIN) out[k] = BUILTIN[k];
+  for(const k in custom) out[k] = custom[k];
+  return out;
+}
+function activeCats(){
+  const all = allCats(), out = {};
+  for(const k in all) if(!S.disabled.includes(k) && all[k].length) out[k] = all[k];
+  return out;
+}
+function pool(){
+  const act = activeCats();
+  if(S.category !== ALL && act[S.category]) return act[S.category];
+  let list = [];
+  for(const k in act) list = list.concat(act[k]);
+  return list;
+}
+function pickWord(){
+  const p = pool();
+  if(!p.length) return null;
+  let avail = p.filter(w => !recent.includes(w));
+  if(!avail.length){
+    const keep = Math.max(1, Math.floor(p.length / 2));
+    const short = recent.slice(-keep);
+    avail = p.filter(w => !short.includes(w));
+    if(!avail.length) avail = p;
+  }
+  const w = avail[Math.floor(Math.random() * avail.length)];
+  recent.push(w);
+  while(recent.length > 20) recent.shift();
+  store.set("hp:recent", recent);
+  return w;
+}
+
+/* ============================= render ============================= */
+function drawScores(){
+  el.scores.innerHTML = "";
+  S.teams.forEach((t,i)=>{
+    const d = document.createElement("div");
+    d.className = "chip";
+    d.style.borderLeftColor = TEAM_COLORS[i % TEAM_COLORS.length];
+    d.innerHTML = `<span class="nm"></span><span class="sc"></span>`;
+    d.querySelector(".nm").textContent = t.name;
+    d.querySelector(".sc").textContent = t.score;
+    el.scores.appendChild(d);
+  });
+}
+function fitWord(){
+  const box = el.wordbox, w = el.word;
+  if(!w.textContent) return;
+  let size = Math.min(92, Math.floor(box.clientWidth / 4.2));
+  w.style.fontSize = size + "px";
+  let guard = 60;
+  while(guard-- > 0 && size > 20 &&
+       (w.scrollHeight > box.clientHeight - 4 || w.scrollWidth > box.clientWidth - 4)){
+    size -= 3; w.style.fontSize = size + "px";
+  }
+}
+function setWord(text){ el.word.textContent = text; requestAnimationFrame(fitWord); }
+
+function render(){
+  if(el.start._disarm) el.start._disarm();
+  if($("gear")._disarm) $("gear")._disarm();
+  el.catName.textContent = S.category === ALL ? "All categories" : S.category;
+  el.cat.classList.toggle("locked", phase === "playing");
+  el.start.classList.toggle("live", phase === "playing");
+  el.start.textContent = phase === "playing" ? "End round" : "Start round";
+  el.next.classList.toggle("on", phase === "playing");
+  el.teamgrid.hidden = phase !== "scoring";
+  el.wordbox.hidden = phase === "scoring";
+  el.next.textContent = "Next";
+  el.next.classList.remove("armed");
+  drawScores();
+  if(phase === "idle"){
+    el.word.innerHTML = `<span class="hint">Hold the phone.<br>Hit start, describe the phrase,<br>then pass it on.</span>`;
+    el.word.style.fontSize = "";
+  }
+}
+
+/* ============================= round ============================= */
+function startRound(){
+  const p = pool();
+  if(!p.length){ setWord("No words. Add a category."); return; }
+  audio();
+  const lo = Math.min(S.minT, S.maxT), hi = Math.max(S.minT, S.maxT);
+  dur = (lo + Math.random() * (hi - lo)) * 1000;
+  endAt = performance.now() + dur;
+  phase = "playing";
+  render();
+  setWord(pickWord());
+  beepLoop();
+  clearTimeout(endT);
+  endT = setTimeout(endRound, dur + 30);
+  glowLoop();
+}
+function beepLoop(){
+  const left = endAt - performance.now();
+  if(left <= 40) return;
+  const frac = Math.max(0, Math.min(1, left / dur));   // 1 -> 0
+  tick(1 - frac);
+  const gap = 90 + 640 * Math.pow(frac, 1.5);
+  beepT = setTimeout(beepLoop, Math.max(70, Math.min(gap, left)));
+}
+function glowLoop(){
+  const left = endAt - performance.now();
+  const heat = Math.max(0, Math.min(1, 1 - left / dur));
+  document.documentElement.style.setProperty("--heat", (heat * heat).toFixed(3));
+  if(left > 0) glowT = setTimeout(glowLoop, 400);
+}
+function stopClocks(){
+  clearTimeout(beepT); clearTimeout(endT); clearTimeout(glowT);
+  clearTimeout(armT); armed = false;
+  document.documentElement.style.setProperty("--heat", 0);
+}
+function endRound(){
+  stopClocks();
+  buzz();
+  phase = "scoring";
+  render();
+  el.teamgrid.className = "teamgrid" + (S.teams.length === 2 ? " two" : "");
+  el.teamgrid.innerHTML = "";
+  const ask = document.createElement("div");
+  ask.className = "ask";
+  ask.style.gridColumn = "1 / -1";
+  ask.style.textAlign = "center";
+  ask.textContent = "Point goes to";
+  el.teamgrid.appendChild(ask);
+  S.teams.forEach((t,i)=>{
+    const b = document.createElement("button");
+    b.className = "pointbtn";
+    b.style.setProperty("--tc", TEAM_COLORS[i % TEAM_COLORS.length]);
+    b.innerHTML = `<span></span><small>+1 point</small>`;
+    b.querySelector("span").textContent = t.name;
+    b.onclick = ()=> award(i);
+    el.teamgrid.appendChild(b);
+  });
+}
+function award(i){
+  S.teams[i].score++;
+  save();
+  if(S.teams[i].score >= S.target){ showWin(S.teams[i].name); return; }
+  phase = "idle";
+  render();
+}
+function cancelRound(){ stopClocks(); phase = "idle"; render(); }
+
+function showWin(name){
+  stopClocks();
+  phase = "idle";
+  $("winWho").textContent = name;
+  $("win").classList.add("open");
+  victoryPlay();
+}
+$("playAgain").onclick = ()=>{
+  S.teams.forEach(t => t.score = 0);
+  save();
+  $("win").classList.remove("open");
+  render();
+};
+
+/* ============================= controls ============================= */
+/* double-tap guard: one tap arms, a second within 1.4s fires */
+function guard(btn, armedLabel, fire){
+  let on = false, t = null;
+  const off = ()=>{ clearTimeout(t); on = false; btn.classList.remove("armed");
+                    if(btn.dataset.label) btn.textContent = btn.dataset.label; };
+  btn._disarm = off;
+  return ()=>{
+    if(on){ off(); fire(); return; }
+    on = true;
+    btn.classList.add("armed");
+    if(armedLabel){ btn.dataset.label = btn.textContent; btn.textContent = armedLabel; }
+    t = setTimeout(off, 1400);
+  };
+}
+const startGuard = guard(el.start, "Tap again to end", ()=> cancelRound());
+el.start.onclick = ()=>{
+  audio();
+  if(phase === "playing") startGuard();
+  else if(phase !== "scoring") startRound();
+};
+el.next.onclick = ()=>{
+  if(phase !== "playing") return;
+  if(!armed){
+    armed = true;
+    el.next.classList.add("armed");
+    el.next.textContent = "Tap again";
+    armT = setTimeout(disarm, 1400);
+  }else{
+    disarm();
+    setWord(pickWord());
+  }
+};
+function disarm(){
+  clearTimeout(armT); armed = false;
+  el.next.classList.remove("armed");
+  el.next.textContent = "Next";
+}
+el.cat.onclick = ()=>{ if(phase !== "playing") openPicker(); };
+window.addEventListener("resize", fitWord);
+
+/* ============================= picker ============================= */
+function openPicker(){
+  const list = $("pickList");
+  list.innerHTML = "";
+  const act = activeCats();
+  const total = Object.values(act).reduce((n,a)=> n + a.length, 0);
+  list.appendChild(pickRow("All categories", total, S.category === ALL, ()=> choose(ALL)));
+  Object.keys(act).sort().forEach(k=>{
+    list.appendChild(pickRow(k, act[k].length, S.category === k, ()=> choose(k)));
+  });
+  $("pickScrim").classList.add("open");
+}
+function pickRow(name, count, sel, fn){
+  const b = document.createElement("button");
+  b.className = "pickrow" + (sel ? " sel" : "");
+  b.innerHTML = `<span class="n"></span><span class="c">${count} words</span>`;
+  b.querySelector(".n").textContent = name;
+  b.onclick = fn;
+  return b;
+}
+function choose(k){
+  S.category = k; save();
+  $("pickScrim").classList.remove("open");
+  render();
+}
+
+/* ============================= settings ============================= */
+const gearGuard = guard($("gear"), null, ()=>{ cancelRound(); openSettings(); });
+$("gear").onclick = ()=>{
+  if(phase === "playing") gearGuard();
+  else openSettings();
+};
+$("setDone").onclick = ()=>{ $("setScrim").classList.remove("open"); render(); };
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click", e =>{ if(e.target === s) s.classList.remove("open"); });
+});
+
+function openSettings(){
+  $("teamCount").textContent = S.teams.length;
+  $("target").value = S.target;
+  $("minT").value = S.minT;
+  $("maxT").value = S.maxT;
+  $("sound").value = S.sound;
+  $("buzzer").value = S.buzzer;
+  $("victory").value = S.victory;
+  $("vol").value = S.vol;
+  $("vibBtn").textContent = S.vibrate ? "On" : "Off";
+  $("vibBtn").classList.toggle("solid", S.vibrate);
+  if(!navigator.vibrate) $("vibNote").textContent = "This device or browser doesn't support vibration";
+  drawTeamNames();
+  drawCatList();
+  $("setScrim").classList.add("open");
+}
+function drawTeamNames(){
+  const box = $("teamNames");
+  box.innerHTML = "";
+  S.teams.forEach((t,i)=>{
+    const r = document.createElement("div");
+    r.className = "row";
+    r.innerHTML = `<label style="flex:none;width:26px;color:${TEAM_COLORS[i%TEAM_COLORS.length]};font-weight:700">${i+1}</label>`;
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.value = t.name; inp.maxLength = 20;
+    inp.oninput = ()=>{ t.name = inp.value || `Team ${i+1}`; save(); drawScores(); };
+    r.appendChild(inp);
+    box.appendChild(r);
+  });
+}
+$("teamPlus").onclick = ()=>{
+  if(S.teams.length >= 6) return;
+  S.teams.push({name:`Team ${S.teams.length+1}`, score:0});
+  $("teamCount").textContent = S.teams.length;
+  save(); drawTeamNames(); drawScores();
+};
+$("teamMinus").onclick = ()=>{
+  if(S.teams.length <= 2) return;
+  S.teams.pop();
+  $("teamCount").textContent = S.teams.length;
+  save(); drawTeamNames(); drawScores();
+};
+$("target").oninput = e =>{ S.target = clamp(+e.target.value || 7, 1, 99); save(); };
+$("minT").oninput  = e =>{ S.minT = clamp(+e.target.value || 15, 5, 300); save(); };
+$("maxT").oninput  = e =>{ S.maxT = clamp(+e.target.value || 30, 5, 300); save(); };
+$("sound").onchange   = e =>{ S.sound   = e.target.value; save(); audio(); tick(.2); };
+$("buzzer").onchange  = e =>{ S.buzzer  = e.target.value; save(); audio(); buzz(); };
+$("victory").onchange = e =>{ S.victory = e.target.value; save(); audio(); victoryPlay(); };
+document.querySelectorAll("[data-test]").forEach(b =>{
+  b.onclick = ()=>{
+    audio();
+    const k = b.dataset.test;
+    if(k === "tick") tick(.2);
+    else if(k === "buzzer") buzz();
+    else victoryPlay();
+  };
+});
+$("vol").oninput = e =>{ S.vol = +e.target.value; save(); };
+$("vol").onchange = ()=>{ audio(); tick(.2); };
+$("vibBtn").onclick = ()=>{
+  S.vibrate = !S.vibrate; save();
+  $("vibBtn").textContent = S.vibrate ? "On" : "Off";
+  $("vibBtn").classList.toggle("solid", S.vibrate);
+  if(S.vibrate && navigator.vibrate) navigator.vibrate(60);
+};
+$("resetScores").onclick = ()=>{ S.teams.forEach(t=>t.score=0); save(); drawScores(); };
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+
+/* ---- category management ---- */
+function drawCatList(){
+  const box = $("catList");
+  box.innerHTML = "";
+  const all = allCats();
+  Object.keys(all).sort().forEach(name=>{
+    const on = !S.disabled.includes(name);
+    const row = document.createElement("div");
+    row.className = "catrow";
+    const tickBtn = document.createElement("button");
+    tickBtn.className = "tick" + (on ? " on" : "");
+    tickBtn.textContent = on ? "✓" : "";
+    tickBtn.setAttribute("aria-label", (on ? "Turn off " : "Turn on ") + name);
+    tickBtn.onclick = ()=>{
+      if(on) S.disabled.push(name);
+      else S.disabled = S.disabled.filter(x => x !== name);
+      if(S.category === name && !on === false) S.category = ALL;
+      save(); drawCatList();
+    };
+    const info = document.createElement("div");
+    info.className = "info";
+    info.innerHTML = `<div class="n"></div><div class="c">${all[name].length} words${custom[name] ? " · yours" : ""}</div>`;
+    info.querySelector(".n").textContent = name;
+    row.appendChild(tickBtn); row.appendChild(info);
+    if(custom[name]){
+      const del = document.createElement("button");
+      del.className = "pill danger";
+      del.textContent = "Delete";
+      del.onclick = ()=>{
+        delete custom[name];
+        if(S.category === name) S.category = ALL;
+        store.set("hp:custom", custom); save(); drawCatList();
+      };
+      row.appendChild(del);
+    }
+    box.appendChild(row);
+  });
+}
+function firstField(line){
+  if(line[0] === '"'){
+    let out = "", i = 1;
+    while(i < line.length){
+      if(line[i] === '"'){ if(line[i+1] === '"'){ out += '"'; i += 2; continue; } break; }
+      out += line[i]; i++;
+    }
+    return out;
+  }
+  return line.split(",")[0];
+}
+function parseList(text){
+  const rows = text.replace(/\r\n?/g, "\n").split("\n")
+    .map(l => firstField(l).trim()).filter(s => s.length);
+  if(rows.length < 2) return null;
+  const name = rows[0];
+  const words = [...new Set(rows.slice(1))];
+  return { name, words };
+}
+function addList(parsed){
+  if(!parsed){ alert("That list needs a category name on the first row and at least one word under it."); return; }
+  custom[parsed.name] = parsed.words;
+  S.disabled = S.disabled.filter(x => x !== parsed.name);
+  store.set("hp:custom", custom); save(); drawCatList();
+}
+$("importBtn").onclick = ()=> $("file").click();
+$("file").onchange = async e =>{
+  for(const f of e.target.files){
+    const text = await f.text();
+    addList(parseList(text));
+  }
+  e.target.value = "";
+};
+$("pasteBtn").onclick = ()=>{ $("pasteWrap").hidden = false; $("pasteBox").focus(); };
+$("pasteCancel").onclick = ()=>{ $("pasteWrap").hidden = true; $("pasteBox").value = ""; };
+$("pasteSave").onclick = ()=>{
+  addList(parseList($("pasteBox").value));
+  $("pasteBox").value = ""; $("pasteWrap").hidden = true;
+};
+
+/* ============================= boot ============================= */
+function save(){ store.set("hp:settings", S); }
+(async function init(){
+  const saved = await store.get("hp:settings", null);
+  if(saved) S = Object.assign(S, saved);
+  custom = await store.get("hp:custom", {}) || {};
+  recent = await store.get("hp:recent", []) || [];
+  if(S.category !== ALL && !activeCats()[S.category]) S.category = ALL;
+  render();
+})();
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden && phase === "playing") cancelRound();
+});
+</script>
+</body>
+</html>

@@ -15,13 +15,18 @@ const PROJECTS = [
 ];
 
 const WEB_APPS = [
-  // {
-  //   title: "App Name",
-  //   description: "What the app does, in a sentence.",
-  //   tags: ["React", "Live"],
-  //   image: "photos/app-name.jpg",
-  //   link: "https://your-app-url.com",
-  // },
+  {
+    title: "Hot Phrase",
+    description: "A pass-the-phone party game: describe the word before the timer runs out and the heat rises.",
+    tags: ["Game", "PWA"],
+    link: "apps/hot-phrase/",
+  },
+  {
+    title: "Farkle Scorekeeper",
+    description: "A scorekeeper for Farkle with the Greed! house rule, win-by margin overtime, and full undo/redo.",
+    tags: ["React", "PWA"],
+    link: "apps/farkle/",
+  },
 ];
 
 /**
