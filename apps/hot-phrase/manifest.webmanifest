@@ -1,0 +1,17 @@
+{
+  "name": "Hot Phrase",
+  "short_name": "Hot Phrase",
+  "description": "A pass-the-phone party game: describe the word before the timer runs out and the heat rises.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#17131F",
+  "theme_color": "#17131F",
+  "lang": "en",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
