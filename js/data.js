@@ -25,14 +25,9 @@ const WEB_APPS = [
 ];
 
 /**
- * The hero background photo (shown faded behind the headline).
- * Leave as an empty string to hide it and show a plain background.
- */
-const HERO_IMAGE = "photos/IMG_1982.jpeg";
-
-/**
- * Photos shown in the Photos gallery. Add more by dropping a file in
- * /photos and adding an entry here.
+ * Photos shown in the Photos gallery, and picked at random for the hero
+ * background on each page load. Add more by dropping a file in /photos
+ * and adding an entry here.
  */
 const PHOTOS = [
   { src: "photos/IMG_1982.jpeg", alt: "Night sky thick with stars, with faint green and red nebula color" },

@@ -109,9 +109,10 @@ function setCount(name, n) {
 
 function setHeroMedia() {
   const el = document.getElementById("hero-media");
-  if (!el || !HERO_IMAGE) return;
+  if (!el || !PHOTOS || PHOTOS.length === 0) return;
+  const photo = PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
   const img = document.createElement("img");
-  img.src = HERO_IMAGE;
+  img.src = photo.src;
   img.alt = "";
   el.appendChild(img);
 }
