@@ -15,11 +15,27 @@ const PROJECTS = [
 ];
 
 const WEB_APPS = [
-  // {
-  //   title: "App Name",
-  //   description: "What the app does, in a sentence.",
-  //   tags: ["React", "Live"],
-  //   image: "photos/app-name.jpg",
-  //   link: "https://your-app-url.com",
-  // },
+  {
+    title: "Hot Phrase",
+    description: "A pass-the-phone party game: describe the word before the timer runs out and the heat rises.",
+    tags: ["Game", "PWA"],
+    link: "apps/hot-phrase/",
+  },
+  {
+    title: "Farkle Scorekeeper",
+    description: "A scorekeeper for Farkle with the Greed! house rule, win-by margin overtime, and full undo/redo.",
+    tags: ["React", "PWA"],
+    link: "apps/farkle/",
+  },
+];
+
+/**
+ * Photos shown in the Photos gallery, and picked at random for the hero
+ * background on each page load. Add more by dropping a file in /photos
+ * and adding an entry here.
+ */
+const PHOTOS = [
+  { src: "photos/IMG_1982.jpeg", alt: "Night sky thick with stars, with faint green and red nebula color" },
+  { src: "photos/IMG_1708.jpeg", alt: "Concrete fish ladder running through a green forest" },
+  { src: "photos/IMG_2079.jpeg", alt: "Close-up of weathered, swirling driftwood grain" },
 ];
