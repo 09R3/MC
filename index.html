@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MC — Things I build</title>
-  <meta name="description" content="A collection of projects and web apps." />
+  <meta name="description" content="A collection of projects, web apps and photos." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -16,10 +16,11 @@
 
   <header class="site-header">
     <div class="wrap header-inner">
-      <a href="#top" class="logo">MC</a>
+      <a href="#top" class="logo">MC<span class="dot">.</span></a>
       <nav class="nav">
         <a href="#projects">Projects</a>
         <a href="#apps">Web Apps</a>
+        <a href="#photos">Photos</a>
         <a href="#about">About</a>
       </nav>
     </div>
@@ -27,13 +28,20 @@
 
   <main id="top">
     <section class="hero">
-      <div class="wrap">
+      <div class="hero-media" id="hero-media"></div>
+      <div class="hero-scrim"></div>
+      <div class="hero-inner">
         <p class="eyebrow">Portfolio</p>
-        <h1>Things I build,<br />out in the open.</h1>
+        <h1>I build things.<br />Then I ship them.</h1>
         <p class="hero-sub">
-          A running collection of projects, experiments and web apps —
-          public so anyone can poke around.
+          A running log of experiments, side projects and web apps —
+          public, occasionally unfinished, always worth a poke around.
+          Photos from wherever I've been, too.
         </p>
+        <div class="hero-actions">
+          <a href="#projects" class="btn btn-primary">See the projects</a>
+          <a href="#about" class="btn btn-secondary">About me</a>
+        </div>
       </div>
     </section>
 
@@ -57,18 +65,29 @@
       </div>
     </section>
 
-    <section id="about" class="section about">
+    <section id="photos" class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Photos</h2>
+          <span class="section-count" data-count="photos">00</span>
+        </div>
+        <div class="photos-grid" id="photos-grid"></div>
+      </div>
+    </section>
+
+    <section id="about" class="section" style="border-bottom: 0;">
       <div class="wrap">
         <div class="section-head">
           <h2>About</h2>
         </div>
         <p class="about-text">
-          This site is a home base for things I make. Everything here is
-          public — feel free to look around, try the apps, or read the code.
+          This site is home base for the things I make — projects, apps,
+          and photos, all in one place. Everything here is public: poke
+          around, try the apps, or read the code.
         </p>
         <div class="links">
-          <a href="mailto:hello@example.com">Email</a>
-          <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+          <a href="mailto:hello@example.com" class="btn btn-secondary">Email</a>
+          <a href="https://github.com/09R3/MC" target="_blank" rel="noopener" class="btn btn-secondary">GitHub</a>
         </div>
       </div>
     </section>
@@ -80,6 +99,36 @@
       <a href="#top">Back to top ↑</a>
     </div>
   </footer>
+
+  <nav class="tab-bar" id="tab-bar">
+    <a href="#projects" class="tab-item" data-tab="projects">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16"><rect x="40" y="40" width="72" height="72" rx="8"></rect><rect x="144" y="40" width="72" height="72" rx="8"></rect><rect x="40" y="144" width="72" height="72" rx="8"></rect><rect x="144" y="144" width="72" height="72" rx="8"></rect></svg>
+      <span>Projects</span>
+    </a>
+    <a href="#apps" class="tab-item" data-tab="apps">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round"><path d="M140 32 56 144h56l-16 80 84-112h-56z"></path></svg>
+      <span>Apps</span>
+    </a>
+    <a href="#photos" class="tab-item" data-tab="photos">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round"><rect x="32" y="48" width="192" height="160" rx="10"></rect><circle cx="96" cy="108" r="16" fill="currentColor" stroke="none"></circle><path d="M32 176l52-52 40 40 32-32 68 68" stroke-linecap="round"></path></svg>
+      <span>Photos</span>
+    </a>
+    <a href="#about" class="tab-item" data-tab="about">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16"><circle cx="128" cy="88" r="44"></circle><path d="M38 208c14-42 52-64 90-64s76 22 90 64" stroke-linecap="round"></path></svg>
+      <span>About</span>
+    </a>
+  </nav>
+
+  <div class="lightbox-backdrop" id="lightbox" hidden>
+    <div class="lightbox" id="lightbox-panel">
+      <div class="lightbox-media">
+        <img id="lightbox-img" src="" alt="" />
+      </div>
+      <div class="lightbox-actions">
+        <button type="button" class="btn btn-secondary" id="lightbox-close">Close</button>
+      </div>
+    </div>
+  </div>
 
   <script src="js/data.js"></script>
   <script src="js/script.js"></script>

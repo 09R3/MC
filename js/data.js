@@ -23,3 +23,19 @@ const WEB_APPS = [
   //   link: "https://your-app-url.com",
   // },
 ];
+
+/**
+ * The hero background photo (shown faded behind the headline).
+ * Leave as an empty string to hide it and show a plain background.
+ */
+const HERO_IMAGE = "photos/IMG_1982.jpeg";
+
+/**
+ * Photos shown in the Photos gallery. Add more by dropping a file in
+ * /photos and adding an entry here.
+ */
+const PHOTOS = [
+  { src: "photos/IMG_1982.jpeg", alt: "Night sky thick with stars, with faint green and red nebula color" },
+  { src: "photos/IMG_1708.jpeg", alt: "Concrete fish ladder running through a green forest" },
+  { src: "photos/IMG_2079.jpeg", alt: "Close-up of weathered, swirling driftwood grain" },
+];
