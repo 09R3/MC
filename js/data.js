@@ -5,6 +5,12 @@
  */
 
 const PROJECTS = [
+  {
+    title: "Marvicons",
+    description: "A collection of simple, clean SVG line icons that use currentColor so they theme automatically.",
+    tags: ["SVG", "Icons"],
+    link: "https://github.com/09R3/Marv-s-site",
+  },
   // {
   //   title: "Project Name",
   //   description: "One or two sentences about what this is.",
