@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MC — Things I build</title>
+  <meta name="description" content="A collection of projects and web apps." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a href="#top" class="logo">MC</a>
+      <nav class="nav">
+        <a href="#projects">Projects</a>
+        <a href="#apps">Web Apps</a>
+        <a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Portfolio</p>
+        <h1>Things I build,<br />out in the open.</h1>
+        <p class="hero-sub">
+          A running collection of projects, experiments and web apps —
+          public so anyone can poke around.
+        </p>
+      </div>
+    </section>
+
+    <section id="projects" class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Projects</h2>
+          <span class="section-count" data-count="projects">00</span>
+        </div>
+        <div class="grid" id="projects-grid"></div>
+      </div>
+    </section>
+
+    <section id="apps" class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Web Apps</h2>
+          <span class="section-count" data-count="apps">00</span>
+        </div>
+        <div class="grid" id="apps-grid"></div>
+      </div>
+    </section>
+
+    <section id="about" class="section about">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>About</h2>
+        </div>
+        <p class="about-text">
+          This site is a home base for things I make. Everything here is
+          public — feel free to look around, try the apps, or read the code.
+        </p>
+        <div class="links">
+          <a href="mailto:hello@example.com">Email</a>
+          <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>&copy; <span id="year"></span> MC</span>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
