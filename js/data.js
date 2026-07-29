@@ -25,12 +25,14 @@ const WEB_APPS = [
     title: "Hot Phrase",
     description: "A pass-the-phone party game: describe the word before the timer runs out and the heat rises.",
     tags: ["Game", "PWA"],
+    image: "apps/hot-phrase/IMG_2238.jpeg",
     link: "apps/hot-phrase/",
   },
   {
     title: "Farkle Scorekeeper",
     description: "A scorekeeper for Farkle with the Greed! house rule, win-by margin overtime, and full undo/redo.",
     tags: ["React", "PWA"],
+    image: "apps/farkle/IMG_2239.jpeg",
     link: "apps/farkle/",
   },
 ];
