@@ -35,6 +35,13 @@ const WEB_APPS = [
     image: "apps/farkle/IMG_2239.jpeg",
     link: "apps/farkle/",
   },
+  {
+    title: "LaserNode",
+    description: "A laser job prep tool: draw, import, and trace artwork, assign cut/score/engrave operations, and export ready-to-cut SVGs.",
+    tags: ["SVG", "Tool"],
+    image: "apps/lasernode/screenshot.jpeg",
+    link: "apps/lasernode/",
+  },
 ];
 
 /**
