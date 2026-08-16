@@ -1,0 +1,2900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LaserNode — laser job prep</title>
+<style>
+:root{
+  --ink:#15171b;
+  --panel:#1c1f25;
+  --raised:#242830;
+  --line:#333944;
+  --line-soft:#2a2f38;
+  --chalk:#dfe3e9;
+  --muted:#8b93a1;
+  --dim:#666e7c;
+  --brass:#c9a253;
+  --brass-dim:#8a6f3a;
+  --bed:#f4f2ee;
+  --bed-edge:#c9c5bd;
+  --danger:#d9584a;
+  --ok:#5fa87c;
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --rail:52px;
+  --insp:300px;
+  --layh:34%;
+  --ruler:22px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--ink);color:var(--chalk);font-family:var(--ui);font-size:13px;
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+
+/* ---------- shell ---------- */
+#app{display:grid;grid-template-rows:44px 1fr 24px;height:100%}
+#topbar{
+  display:flex;align-items:center;gap:6px;padding:0 10px;
+  background:var(--panel);border-bottom:1px solid var(--line);
+}
+.brand{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--brass);padding-right:12px;margin-right:6px;border-right:1px solid var(--line);
+  white-space:nowrap;
+}
+.brand small{display:block;letter-spacing:.08em;color:var(--dim);font-size:9px}
+.tb{
+  background:var(--raised);border:1px solid var(--line);border-radius:4px;
+  padding:5px 10px;color:var(--chalk);white-space:nowrap;
+}
+.tb:hover{border-color:var(--brass-dim);background:#2b303a}
+.tb:active{transform:translateY(1px)}
+.tb.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.tb.ghost:hover{color:var(--chalk);border-color:var(--line)}
+.tb[disabled]{opacity:.35;pointer-events:none}
+.sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+.spacer{flex:1}
+select.tb{padding:5px 6px}
+
+/* ---------- tool rail ---------- */
+#main{display:grid;grid-template-columns:var(--rail) 1fr var(--insp);min-height:0}
+#rail{
+  background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:4px;
+}
+.tool{
+  width:38px;height:38px;border-radius:5px;border:1px solid transparent;background:transparent;
+  display:grid;place-items:center;color:var(--muted);position:relative;
+}
+.tool:hover{background:var(--raised);color:var(--chalk)}
+.tool.on{background:var(--raised);color:var(--brass);border-color:var(--brass-dim)}
+.tool.on::before{content:"";position:absolute;left:-9px;top:9px;bottom:9px;width:2px;background:var(--brass)}
+.tool svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.railgap{height:10px}
+
+/* ---------- canvas ---------- */
+#stagewrap{
+  position:relative;min-width:0;background:#101216;
+  display:grid;grid-template-columns:var(--ruler) 1fr;grid-template-rows:var(--ruler) 1fr;
+}
+#rulercorner{background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:grid;place-items:center;font-family:var(--mono);font-size:9px;color:var(--dim)}
+#rulerx,#rulery{background:var(--panel);overflow:hidden}
+#rulerx{border-bottom:1px solid var(--line)}
+#rulery{border-right:1px solid var(--line)}
+#viewport{position:relative;overflow:hidden;cursor:default}
+#viewport.panning{cursor:grabbing}
+#viewport.crosshair{cursor:crosshair}
+#stage{display:block;width:100%;height:100%}
+#dropveil{
+  position:absolute;inset:12px;border:2px dashed var(--brass);border-radius:8px;
+  background:rgba(201,162,83,.08);display:none;place-items:center;pointer-events:none;z-index:5;
+}
+#dropveil.on{display:grid}
+#dropveil div{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+
+/* ---------- inspector ---------- */
+#right{display:grid;grid-template-rows:minmax(120px,var(--layh)) 6px 1fr;background:var(--panel);border-left:1px solid var(--line);min-height:0}
+#insp{overflow-y:auto;overscroll-behavior:contain}
+#insp::-webkit-scrollbar,#layers::-webkit-scrollbar{width:9px}
+#insp::-webkit-scrollbar-thumb,#layers::-webkit-scrollbar-thumb{background:#39404c;border-radius:5px}
+
+/* ---------- layers pane ---------- */
+#layerpane{display:grid;grid-template-rows:auto auto 1fr;min-height:0}
+#layerhead{
+  display:flex;align-items:center;gap:8px;padding:9px 12px 8px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+}
+#layerhead::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+#layerhead b{color:var(--brass);font-weight:500;letter-spacing:.1em}
+#crumb{
+  display:none;align-items:center;gap:4px;padding:0 12px 7px;font-size:11px;color:var(--muted);
+}
+#crumb.on{display:flex}
+#crumb button{background:none;border:0;color:var(--brass);padding:0;font-size:11px;text-decoration:underline}
+#crumb span{color:var(--dim)}
+#layers{overflow-y:auto;padding:0 8px 10px;min-height:0}
+.lyr{
+  display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:12px;
+  border:1px solid transparent;user-select:none;
+}
+.lyr:hover{background:var(--raised)}
+.lyr.sel{background:#2b2f39;border-color:var(--brass-dim)}
+.lyr.sel .t{color:#fff}
+.lyr.dim .t,.lyr.dim .k{opacity:.4}
+.lyr .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lyr .t input{width:100%;background:#0f1115;border:1px solid var(--brass-dim);border-radius:3px;padding:1px 4px;font-size:12px}
+.lyr .k{font-family:var(--mono);font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.lyr .sw{width:10px;height:10px;border-radius:2px;border:1px solid rgba(255,255,255,.22);flex:0 0 auto}
+.lyr .tw{width:12px;flex:0 0 auto;color:var(--dim);font-size:9px;text-align:center;line-height:1}
+.lyr .tw.can:hover{color:var(--brass)}
+.lyr .eye{
+  background:none;border:0;padding:0 2px;color:var(--dim);flex:0 0 auto;line-height:1;font-size:11px;opacity:0
+}
+.lyr:hover .eye,.lyr .eye.off{opacity:1}
+.lyr .eye:hover{color:var(--chalk)}
+.lyr.dropabove{box-shadow:inset 0 2px 0 var(--brass)}
+.lyr.dropbelow{box-shadow:inset 0 -2px 0 var(--brass)}
+#splitter{background:var(--line);cursor:ns-resize}
+#splitter:hover{background:var(--brass-dim)}
+
+/* ---------- fonts ---------- */
+.fontrow{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:4px;font-size:12px}
+.fontrow:hover{background:var(--raised)}
+.fontrow .fname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fontrow .prev{font-size:15px;color:var(--chalk);flex:0 0 auto;padding-right:4px}
+.fontrow button{background:none;border:0;color:var(--dim);padding:0 3px;font-size:13px;line-height:1}
+.fontrow button:hover{color:var(--danger)}
+.drop{
+  border:1px dashed var(--line);border-radius:5px;padding:12px 8px;text-align:center;color:var(--dim);
+  font-size:11.5px;cursor:pointer;
+}
+.drop:hover,.drop.hot{border-color:var(--brass);color:var(--brass);background:rgba(201,162,83,.06)}
+#projName{font-size:12px;color:var(--chalk);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{
+  display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--line);border-radius:3px;padding:1px 4px;opacity:.8
+}
+
+/* ---------- shape picker ---------- */
+.shapes{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.shapes button{
+  background:var(--raised);border:1px solid var(--line);border-radius:4px;height:32px;
+  display:grid;place-items:center;color:var(--muted)
+}
+.shapes button:hover{color:var(--chalk);border-color:var(--brass-dim)}
+.shapes button.on{color:var(--brass);border-color:var(--brass-dim);background:#2b2f39}
+.shapes svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linejoin:round}
+.sec{border-bottom:1px solid var(--line-soft);padding:12px 12px 14px}
+.sec h3{
+  margin:0 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);font-weight:500;display:flex;align-items:center;gap:8px;
+}
+.sec h3::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.field{display:flex;align-items:center;gap:6px;background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:0 7px}
+.field:focus-within{border-color:var(--brass-dim)}
+.field label{font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.field input{
+  width:100%;min-width:0;background:transparent;border:0;padding:6px 0;font-family:var(--mono);font-size:12px;
+  text-align:right;
+}
+.field input:focus{outline:none}
+.field .u{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.btn{
+  flex:1;background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:6px 8px;
+  font-size:12px;white-space:nowrap;
+}
+.btn:hover{border-color:var(--brass-dim)}
+.btn.primary{background:var(--brass);border-color:var(--brass);color:#1a1508;font-weight:600}
+.btn.primary:hover{background:#d8b164}
+.btn.sm{padding:4px 6px;font-size:11px}
+.iconrow{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.iconrow button{
+  background:var(--raised);border:1px solid var(--line);border-radius:4px;height:28px;display:grid;place-items:center;color:var(--muted)
+}
+.iconrow button:hover{color:var(--chalk);border-color:var(--brass-dim)}
+.iconrow svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5}
+.hint{color:var(--dim);font-size:11px;line-height:1.45;margin:8px 0 0}
+.empty{color:var(--dim);font-size:12px;font-style:italic}
+textarea.ta{
+  width:100%;background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:7px;
+  resize:vertical;min-height:56px;font-size:12px;
+}
+textarea.ta:focus{outline:none;border-color:var(--brass-dim)}
+select.sel{
+  width:100%;background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:6px 7px;
+}
+input[type=range]{width:100%;accent-color:var(--brass)}
+.chk{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;margin-top:8px;cursor:pointer}
+.chk input{accent-color:var(--brass)}
+
+/* ---------- operations (setup sheet) ---------- */
+.op{
+  display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;
+  padding:6px 6px;border-radius:4px;border:1px solid transparent;cursor:pointer;
+}
+.op:hover{background:var(--raised);border-color:var(--line)}
+.op .sw{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.25)}
+.op .nm{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op .nm em{display:block;font-style:normal;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.op .ct{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.op.sel{border-color:var(--brass-dim);background:var(--raised)}
+.opedit{display:none;padding:8px;margin:4px 0 8px;background:#191c22;border:1px solid var(--line);border-radius:4px}
+.opedit.on{display:block}
+.opedit input[type=color]{width:100%;height:26px;background:none;border:1px solid var(--line);border-radius:3px;padding:1px}
+.opedit input[type=text]{width:100%;background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:5px 7px}
+
+/* colour-swatch rows in the inspector reuse .lyr, defined above */
+
+/* ---------- status ---------- */
+#status{
+  display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--panel);
+  border-top:1px solid var(--line);font-family:var(--mono);font-size:10.5px;color:var(--dim);
+  letter-spacing:.04em;
+}
+#status b{color:var(--muted);font-weight:500}
+#warn{color:var(--danger);margin-left:auto}
+#warn.ok{color:var(--ok)}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;left:50%;bottom:44px;transform:translateX(-50%) translateY(8px);
+  background:var(--raised);border:1px solid var(--brass-dim);border-radius:5px;padding:8px 14px;
+  font-size:12px;opacity:0;pointer-events:none;transition:.18s;z-index:50;max-width:420px;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#modal{position:fixed;inset:0;background:rgba(8,10,13,.62);display:none;place-items:center;z-index:70}
+#modal.on{display:grid}
+#modal .sheet{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:min(520px,92vw);max-height:76vh;
+  display:flex;flex-direction:column;padding:16px 16px 12px;box-shadow:0 18px 48px rgba(0,0,0,.5)}
+#modal h4{margin:0 0 12px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:500}
+#projRows{overflow-y:auto;flex:1;min-height:60px}
+#projRows::-webkit-scrollbar{width:9px}
+#projRows::-webkit-scrollbar-thumb{background:#39404c;border-radius:5px}
+.prow{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:5px;cursor:pointer;border:1px solid transparent}
+.prow:hover{background:var(--raised);border-color:var(--line)}
+.prow .pn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .pn em{display:block;font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.05em;margin-top:2px}
+.prow .del{background:none;border:0;color:var(--dim);font-size:14px;padding:2px 5px}
+.prow .del:hover{color:var(--danger)}
+.mrow{display:flex;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line-soft)}
+.mrow .btn{flex:1}
+#busy{
+  position:fixed;inset:0;background:rgba(10,12,15,.6);display:none;place-items:center;z-index:60;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)
+}
+#busy.on{display:grid}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="topbar">
+    <div class="brand">LaserNode<small>laser job prep</small></div>
+    <button class="tb" id="btnOpen">Import</button>
+    <button class="tb" id="btnNew">New</button>
+    <div class="sep"></div>
+    <span id="projName" title="Current project">Untitled</span>
+    <span id="srvBadge" class="tag" style="margin-left:2px">local only</span>
+    <button class="tb" id="btnSave" title="Ctrl+S">Save</button>
+    <button class="tb ghost" id="btnOpenProj">Projects</button>
+    <div class="sep"></div>
+    <button class="tb ghost" id="btnUndo" title="Ctrl+Z">Undo</button>
+    <button class="tb ghost" id="btnRedo" title="Ctrl+Shift+Z">Redo</button>
+    <div class="sep"></div>
+    <label class="tb ghost" style="display:flex;align-items:center;gap:6px;cursor:default">
+      Bed
+      <select id="bedSel" style="background:var(--raised);border:1px solid var(--line);border-radius:3px;padding:3px 4px">
+        <option value="19.5x11">Glowforge Basic / Plus / Pro — 19.5 × 11 in</option>
+        <option value="12x11.8">Glowforge Aura — 12 × 11.8 in</option>
+        <option value="23.6x11.8">Generic 600 × 300 mm</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </label>
+    <label class="tb ghost" style="display:flex;align-items:center;gap:6px;cursor:default">
+      Units
+      <select id="unitSel" style="background:var(--raised);border:1px solid var(--line);border-radius:3px;padding:3px 4px">
+        <option value="in">inches</option>
+        <option value="mm">mm</option>
+      </select>
+    </label>
+    <div class="spacer"></div>
+    <label class="tb ghost" style="display:flex;align-items:center;gap:6px;cursor:default">
+      Snap
+      <select id="snapSel" style="background:var(--raised);border:1px solid var(--line);border-radius:3px;padding:3px 4px">
+        <option value="0">off</option>
+        <option value="0.0625">1/16"</option>
+        <option value="0.125">1/8"</option>
+        <option value="0.25">1/4"</option>
+        <option value="0.5">1/2"</option>
+        <option value="1">1"</option>
+      </select>
+    </label>
+    <button class="tb" id="btnFit" title="Ctrl+0">Fit view</button>
+    <button class="tb" id="btnExport" style="background:var(--brass);border-color:var(--brass);color:#1a1508;font-weight:600">Export SVG</button>
+  </div>
+
+  <div id="main">
+    <div id="rail">
+      <button class="tool on" data-tool="select" title="Select — V">
+        <svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10.5 19z"/></svg></button>
+      <button class="tool" data-tool="text" title="Text — T">
+        <svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M8.5 20h7"/></svg></button>
+      <button class="tool" data-tool="rect" title="Rectangle — R">
+        <svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
+      <button class="tool" data-tool="ellipse" title="Ellipse — E">
+        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg></button>
+      <button class="tool" data-tool="line" title="Line — L">
+        <svg viewBox="0 0 24 24"><path d="M4 19L20 5"/></svg></button>
+      <button class="tool" data-tool="poly" title="Polygon / star — P">
+        <svg viewBox="0 0 24 24"><path d="M12 4l2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/></svg></button>
+      <button class="tool" data-tool="lasso" title="Lasso — A">
+        <svg viewBox="0 0 24 24"><path d="M12 4c4.4 0 8 2.5 8 5.5S16.4 15 12 15s-8-2.5-8-5.5S7.6 4 12 4z"/><path d="M8.6 14.6c-.5 1.4-1.3 2.2-1.3 3.4 0 1.1.9 2 2 2"/></svg></button>
+      <div class="railgap"></div>
+      <button class="tool" data-tool="pan" title="Pan — hold Space">
+        <svg viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 013 0V11m0-1.5a1.5 1.5 0 013 0V12m0-1a1.5 1.5 0 013 0v5a5 5 0 01-5 5h-2.2a4 4 0 01-3-1.4L6 15.5a1.6 1.6 0 012.4-2L9 14V7.5"/></svg></button>
+    </div>
+
+    <div id="stagewrap">
+      <div id="rulercorner"><span id="unitTag">in</span></div>
+      <canvas id="rulerx"></canvas>
+      <canvas id="rulery"></canvas>
+      <div id="viewport">
+        <svg id="stage" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="dropveil"><div>Drop SVG, PNG or JPG</div></div>
+      </div>
+    </div>
+
+    <div id="right">
+      <div id="layerpane">
+        <div id="layerhead">Layers <b id="layerN">0</b></div>
+        <div id="crumb"></div>
+        <div id="layers"></div>
+      </div>
+      <div id="splitter"></div>
+      <div id="insp"></div>
+    </div>
+  </div>
+
+  <div id="status">
+    <span><b id="stCursor">—</b></span>
+    <span>bed <b id="stBed">—</b></span>
+    <span>zoom <b id="stZoom">100%</b></span>
+    <span>objects <b id="stCount">0</b></span>
+    <span id="warn" class="ok">on bed</span>
+  </div>
+</div>
+
+<input type="file" id="filein" multiple accept=".svg,image/svg+xml,image/png,image/jpeg" style="display:none">
+<input type="file" id="fontin" multiple accept=".ttf,.otf,.woff,.woff2" style="display:none">
+<div id="modal"><div class="sheet">
+  <h4>Projects</h4>
+  <div id="projRows"></div>
+  <div class="mrow"><button class="btn" id="mClose">Close</button></div>
+</div></div>
+<div id="toast"></div>
+<div id="busy">working…</div>
+
+<script>
+/* ============================================================
+   LaserNode — laser job prep
+   Single-file, zero-dependency SVG prep tool.
+   ============================================================ */
+"use strict";
+
+const SVGNS = "http://www.w3.org/2000/svg";
+const PPI = 96;                       // SVG user units per inch
+const MM = 25.4;
+
+const S = {
+  bedW: 19.5, bedH: 11,               // inches
+  unit: "in",
+  tool: "select",
+  zoom: 1, panX: 0, panY: 0,
+  sel: [],
+  ops: [
+    { name: "Cut",      color: "#FF0000", mode: "cut" },
+    { name: "Score",    color: "#0000FF", mode: "score" },
+    { name: "Engrave",  color: "#000000", mode: "engrave" },
+    { name: "Cut 2",    color: "#00A651", mode: "cut" },
+    { name: "Score 2",  color: "#FF00FF", mode: "score" },
+    { name: "Engrave 2",color: "#7F7F7F", mode: "engrave" }
+  ],
+  activeOp: 0,
+  editingOp: -1,
+  shape: { sides: 5, star: false, ratio: 0.45, rx: 0 },
+  scope: null,               // container we select inside (null = whole bed)
+  expanded: new Set(),
+  sub: [],                   // lasso sub-selection: leaf nodes inside an import
+  lassoMode: "enclosed",     // or "touching"
+  fonts: [],                 // { family, b64, format, fileName, id }
+  cpId: 0,
+  snap: 0,                   // grid snap increment in doc units, 0 = off
+  trace: { quality: "normal", weight: 1, simplify: 0.32, smooth: true,
+           minArea: 0.0004, holes: true, threshold: 158, invert: false },
+  server: false,             // set true when /api/health answers
+  proj: { id: null, name: "Untitled", dirty: false },
+  projList: [],
+  undo: [], redo: [],
+  idc: 0
+};
+
+/* ---------- tiny helpers ---------- */
+const $ = s => document.querySelector(s);
+const el = (t, a) => { const n = document.createElementNS(SVGNS, t); for (const k in (a||{})) n.setAttribute(k, a[k]); return n; };
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;" }[c]));
+
+// unit conversion: doc px <-> display unit
+const toU  = px => S.unit === "in" ? px / PPI : px / PPI * MM;
+const fromU = v  => S.unit === "in" ? v * PPI : v / MM * PPI;
+const fmtU = px => { const v = toU(px); return S.unit === "in" ? v.toFixed(3) : v.toFixed(2); };
+
+let toastT;
+function toast(msg, ms) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), ms || 2600);
+}
+function busy(on, label) { const b = $("#busy"); b.textContent = label || "working…"; b.classList.toggle("on", !!on); }
+
+/* ---------- stage construction ---------- */
+const stage = $("#stage");
+let defs, vp, bedRect, gridG, gridMinor, gridMajor, content, overlay;
+
+function buildStage() {
+  stage.textContent = "";
+  defs = el("defs");
+  const pMinor = el("pattern", { id: "pMinor", width: 48, height: 48, patternUnits: "userSpaceOnUse" });
+  gridMinor = el("path", { d: "M48 0V48H0", fill: "none", stroke: "#000", "stroke-opacity": ".07", "stroke-width": 1 });
+  pMinor.append(gridMinor);
+  const pMajor = el("pattern", { id: "pMajor", width: 96, height: 96, patternUnits: "userSpaceOnUse" });
+  gridMajor = el("path", { d: "M96 0V96H0", fill: "none", stroke: "#000", "stroke-opacity": ".16", "stroke-width": 1 });
+  pMajor.append(gridMajor);
+  defs.append(pMinor, pMajor);
+
+  vp = el("g", { id: "vp" });
+  const shadow = el("rect", { x: 3, y: 3, rx: 2, fill: "rgba(0,0,0,.45)" });
+  bedRect = el("rect", { x: 0, y: 0, fill: "var(--bed)", stroke: "var(--bed-edge)", "stroke-width": 1 });
+  gridG = el("g");
+  const g1 = el("rect", { x: 0, y: 0, fill: "url(#pMinor)", "pointer-events": "none" });
+  const g2 = el("rect", { x: 0, y: 0, fill: "url(#pMajor)", "pointer-events": "none" });
+  gridG.append(g1, g2);
+  content = el("g", { id: "content" });
+  overlay = el("g", { id: "overlay", "pointer-events": "none" });
+
+  vp.append(shadow, bedRect, gridG, content, overlay);
+  stage.append(defs, vp);
+  stage._shadow = shadow; stage._g1 = g1; stage._g2 = g2;
+  sizeBed();
+}
+
+function sizeBed() {
+  const w = S.bedW * PPI, h = S.bedH * PPI;
+  for (const r of [bedRect, stage._shadow, stage._g1, stage._g2]) { r.setAttribute("width", w); r.setAttribute("height", h); }
+  $("#stBed").textContent = S.unit === "in"
+    ? `${S.bedW} × ${S.bedH} in`
+    : `${Math.round(S.bedW * MM)} × ${Math.round(S.bedH * MM)} mm`;
+}
+
+/* ---------- view transform ---------- */
+function applyView() {
+  vp.setAttribute("transform", `translate(${S.panX},${S.panY}) scale(${S.zoom})`);
+  const sw = 1 / S.zoom;
+  gridMinor.setAttribute("stroke-width", sw);
+  gridMajor.setAttribute("stroke-width", sw);
+  bedRect.setAttribute("stroke-width", sw);
+  $("#stZoom").textContent = Math.round(S.zoom * 100) + "%";
+  drawRulers();
+  drawOverlay();
+}
+function resizeStage() {
+  const r = $("#viewport").getBoundingClientRect();
+  stage.setAttribute("viewBox", `0 0 ${r.width} ${r.height}`);
+  const rx = $("#rulerx"), ry = $("#rulery"), dpr = devicePixelRatio || 1;
+  rx.width = r.width * dpr; rx.height = 22 * dpr; rx.style.width = r.width + "px"; rx.style.height = "22px";
+  ry.width = 22 * dpr; ry.height = r.height * dpr; ry.style.width = "22px"; ry.style.height = r.height + "px";
+  applyView();
+}
+function fitView() {
+  const r = $("#viewport").getBoundingClientRect();
+  const z = Math.min((r.width - 60) / (S.bedW * PPI), (r.height - 60) / (S.bedH * PPI));
+  S.zoom = z; S.panX = (r.width - S.bedW * PPI * z) / 2; S.panY = (r.height - S.bedH * PPI * z) / 2;
+  applyView();
+}
+const toDoc = (sx, sy) => ({ x: (sx - S.panX) / S.zoom, y: (sy - S.panY) / S.zoom });
+function ptFromEvent(e) {
+  const r = $("#viewport").getBoundingClientRect();
+  return toDoc(e.clientX - r.left, e.clientY - r.top);
+}
+
+/* ---------- rulers ---------- */
+const STEPS_IN = [1/32, 1/16, 1/8, 1/4, 1/2, 1, 2, 6, 12, 24];
+const STEPS_MM = [0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500];
+function pickStep(minPx) {
+  const steps = S.unit === "in" ? STEPS_IN : STEPS_MM;
+  for (const s of steps) if (fromU(s) * S.zoom >= minPx) return s;
+  return steps[steps.length - 1];
+}
+function drawRulers() {
+  const dpr = devicePixelRatio || 1;
+  const rx = $("#rulerx"), ry = $("#rulery");
+  const cx = rx.getContext("2d"), cy = ry.getContext("2d");
+  const W = rx.width / dpr, H = ry.height / dpr;
+  const minor = pickStep(6), major = pickStep(52);
+  for (const [ctx, len] of [[cx, W], [cy, H]]) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, len, 22);
+    ctx.fillStyle = "#1c1f25"; ctx.fillRect(0, 0, ctx === cx ? len : 22, ctx === cx ? 22 : len);
+    ctx.font = "9px ui-monospace, Menlo, Consolas, monospace";
+    ctx.fillStyle = "#8a6f3a"; ctx.strokeStyle = "#8a6f3a";
+  }
+  const drawAxis = (ctx, horiz, len, pan) => {
+    const startU = toU((0 - pan) / S.zoom), endU = toU((len - pan) / S.zoom);
+    ctx.beginPath();
+    const s0 = Math.floor(startU / minor) * minor;
+    for (let u = s0; u <= endU + minor; u += minor) {
+      const p = pan + fromU(u) * S.zoom;
+      if (p < -2 || p > len + 2) continue;
+      const isMaj = Math.abs(u / major - Math.round(u / major)) < 1e-6;
+      const t = isMaj ? 22 : 22 - 5;
+      if (horiz) { ctx.moveTo(Math.round(p) + .5, t); ctx.lineTo(Math.round(p) + .5, 22); }
+      else { ctx.moveTo(t, Math.round(p) + .5); ctx.lineTo(22, Math.round(p) + .5); }
+      if (isMaj) {
+        const lbl = (S.unit === "in" ? +u.toFixed(3) : Math.round(u)).toString();
+        ctx.fillStyle = "#c9a253";
+        if (horiz) ctx.fillText(lbl, Math.round(p) + 3, 9);
+        else { ctx.save(); ctx.translate(9, Math.round(p) - 3); ctx.rotate(-Math.PI / 2); ctx.fillText(lbl, 0, 0); ctx.restore(); }
+      }
+    }
+    ctx.lineWidth = 1; ctx.strokeStyle = "#8a6f3a"; ctx.stroke();
+  };
+  drawAxis(cx, true, W, S.panX);
+  drawAxis(cy, false, H, S.panY);
+  $("#unitTag").textContent = S.unit;
+}
+
+/* ---------- matrices ---------- */
+function getMat(n) {
+  const t = n.getAttribute("transform");
+  return t ? new DOMMatrix(t) : new DOMMatrix();
+}
+function setMat(n, m) {
+  n.setAttribute("transform", `matrix(${+m.a.toFixed(6)},${+m.b.toFixed(6)},${+m.c.toFixed(6)},${+m.d.toFixed(6)},${+m.e.toFixed(4)},${+m.f.toFixed(4)})`);
+}
+// A node can live inside a group, so its on-bed position is the product of every
+// transform above it. Everything below works in bed coordinates and converts.
+function parentMat(n) {
+  const chain = [];
+  let p = n.parentNode;
+  while (p && p !== content && p !== document) { chain.push(p); p = p.parentNode; }
+  let m = new DOMMatrix();
+  for (let i = chain.length - 1; i >= 0; i--) m = m.multiply(getMat(chain[i]));
+  return m;
+}
+function docMat(n) { return parentMat(n).multiply(getMat(n)); }
+function applyMat(M, nodes) {
+  (nodes || S.sel).forEach(n => {
+    const P = parentMat(n);
+    setMat(n, P.inverse().multiply(M).multiply(P).multiply(getMat(n)));
+  });
+}
+function reparent(n, newParent, ref) {
+  const D = docMat(n);
+  newParent.insertBefore(n, ref);
+  setMat(n, parentMat(n).inverse().multiply(D));
+}
+
+function localBox(n) { try { return n.getBBox(); } catch (e) { return { x:0,y:0,width:0,height:0 }; } }
+function corners(b) { return [[b.x,b.y],[b.x+b.width,b.y],[b.x+b.width,b.y+b.height],[b.x,b.y+b.height]]; }
+function docCorners(n) { const m = docMat(n); return corners(localBox(n)).map(([x,y]) => m.transformPoint(new DOMPoint(x,y))); }
+function aabbOf(nodes) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  nodes.forEach(n => docCorners(n).forEach(p => { x0 = Math.min(x0,p.x); y0 = Math.min(y0,p.y); x1 = Math.max(x1,p.x); y1 = Math.max(y1,p.y); }));
+  if (!isFinite(x0)) return null;
+  return { x:x0, y:y0, width:x1-x0, height:y1-y0 };
+}
+// selection frame: rotated for a single object, axis-aligned for many
+function selFrame() {
+  if (!S.sel.length) return null;
+  if (S.sel.length === 1) { const n = S.sel[0]; return { m: docMat(n), b: localBox(n) }; }
+  return { m: new DOMMatrix(), b: aabbOf(S.sel) };
+}
+
+/* ---------- objects ---------- */
+function nextId() { return "o" + (++S.idc); }
+function addObject(node, opts) {
+  node.setAttribute("data-id", nextId());
+  if (!node.getAttribute("transform")) setMat(node, new DOMMatrix());
+  scope().append(node);
+  if (opts && opts.op !== undefined) applyOp(node, opts.op);
+  return node;
+}
+const scope = () => S.scope && S.scope.isConnected ? S.scope : content;
+function objects() { return [...scope().children]; }
+function allTop() { return [...content.children]; }
+// Browsers only register a hit on painted pixels, so an unfilled outline means
+// aiming at a 1px line. Test the geometry ourselves: strokes first with a
+// generous tolerance, then interiors, so a shape behind a big empty rectangle
+// stays reachable.
+const GEOM = ["path","rect","circle","ellipse","line","polyline","polygon"];
+function pickAt(pt, tolPx) {
+  const tol = tolPx / S.zoom;
+  const sc = scope();
+  const list = [...sc.querySelectorAll(DRAWABLE)].filter(n => {
+    if (n.closest("defs,clipPath,mask,marker,pattern")) return false;
+    if (n.getAttribute("data-guide")) return false;
+    for (let p = n; p && p !== content; p = p.parentNode) if (p.style && p.style.display === "none") return false;
+    return true;
+  }).reverse();
+  const localPt = n => {
+    const m = docMat(n);
+    const d = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
+    return { p: m.inverse().transformPoint(new DOMPoint(pt.x, pt.y)), scale: d };
+  };
+  // pass 1 — near an outline
+  for (const n of list) {
+    const tag = n.tagName.toLowerCase();
+    if (!GEOM.includes(tag)) continue;
+    const { p, scale } = localPt(n);
+    const want = Math.max(tol * scale, 2);
+    const prev = n.getAttribute("stroke-width");
+    const ve = n.getAttribute("vector-effect");
+    n.setAttribute("stroke-width", want * 2);
+    if (ve) n.removeAttribute("vector-effect");
+    let hit = false;
+    try { hit = n.isPointInStroke(new DOMPoint(p.x, p.y)); } catch (err) { hit = false; }
+    if (prev === null) n.removeAttribute("stroke-width"); else n.setAttribute("stroke-width", prev);
+    if (ve) n.setAttribute("vector-effect", ve);
+    if (hit) return n;
+  }
+  // pass 2 — inside a shape
+  for (const n of list) {
+    const tag = n.tagName.toLowerCase();
+    const { p } = localPt(n);
+    if (GEOM.includes(tag) && n.isPointInFill) {
+      let hit = false;
+      try { hit = n.isPointInFill(new DOMPoint(p.x, p.y)); } catch (err) { hit = false; }
+      if (hit) return n;
+    } else {
+      const b = localBox(n);
+      if (p.x >= b.x && p.x <= b.x + b.width && p.y >= b.y && p.y <= b.y + b.height) return n;
+    }
+  }
+  return null;
+}
+function topOf(n) {
+  const sc = scope();
+  while (n && n.parentNode !== sc) { n = n.parentNode; if (!n || n === content || n === stage) return null; }
+  return n;
+}
+function hitAt(e) {
+  const direct = objByEvent(e);
+  if (direct) return direct;
+  const found = pickAt(ptFromEvent(e), 6);
+  return found ? topOf(found) : null;
+}
+function objByEvent(e) {
+  const sc = scope();
+  let n = e.target;
+  while (n && n.parentNode !== sc) { n = n.parentNode; if (n === stage || !n) return null; }
+  return n && n.parentNode === sc ? n : null;
+}
+function setScope(g) {
+  S.scope = g && g !== content ? g : null;
+  if (S.scope) S.expanded.add(S.scope.getAttribute("data-id"));
+  renderCrumb();
+}
+function renderCrumb() {
+  const c = $("#crumb"); if (!c) return;
+  if (!S.scope || !S.scope.isConnected) { c.className = ""; c.innerHTML = ""; return; }
+  const chain = [];
+  let p = S.scope;
+  while (p && p !== content) { chain.unshift(p); p = p.parentNode; }
+  c.className = "on";
+  c.innerHTML = `<button data-crumb="-1">Bed</button>` +
+    chain.map((n, i) => `<span>›</span><button data-crumb="${i}">${esc(labelFor(n))}</button>`).join("");
+  c.querySelectorAll("[data-crumb]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.crumb;
+    setScope(i < 0 ? null : chain[i]);
+    select([]);
+  });
+}
+
+/* ---------- selection ---------- */
+function select(nodes, add) {
+  const list = Array.isArray(nodes) ? nodes : nodes ? [nodes] : [];
+  S.sel = add ? [...new Set([...S.sel, ...list])] : list;
+  S.sel = S.sel.filter(n => n.isConnected && content.contains(n) && n !== content);
+  S.sel.forEach(n => { let p = n.parentNode; while (p && p !== content) { const id = p.getAttribute("data-id"); if (id) S.expanded.add(id); p = p.parentNode; } });
+  drawOverlay(); renderInspector(); renderLayers(); updateStatus();
+}
+function selectAll() { select(objects()); }
+
+/* ---------- overlay (handles) ---------- */
+let hoverN = null;
+function drawOverlay() {
+  overlay.textContent = "";
+  const z = S.zoom, hs = 4.5 / z;
+  if (hoverN && hoverN.isConnected && !S.sel.includes(hoverN)) {
+    const b = localBox(hoverN), m = docMat(hoverN);
+    const r = el("rect", { x:b.x, y:b.y, width:b.width, height:b.height, fill:"none",
+      stroke:"#c9a253", "stroke-opacity":".55", "stroke-width":1/z, transform:m.toString() });
+    overlay.append(r);
+  }
+  // every selected object gets its own faint outline so a multi-selection is readable
+  if (S.sel.length > 1) S.sel.forEach(n => {
+    const b = localBox(n);
+    overlay.append(el("rect", { x:b.x, y:b.y, width:b.width, height:b.height, fill:"none",
+      stroke:"#c9a253", "stroke-opacity":".5", "stroke-width":1/z,
+      "stroke-dasharray": `${3/z} ${2.5/z}`, transform: docMat(n).toString() }));
+  });
+  if (S.scope && S.scope.isConnected) {
+    const b = localBox(S.scope);
+    overlay.append(el("rect", { x:b.x-4, y:b.y-4, width:b.width+8, height:b.height+8, fill:"none",
+      stroke:"#5fa87c", "stroke-opacity":".8", "stroke-width":1/z,
+      "stroke-dasharray": `${6/z} ${4/z}`, transform: docMat(S.scope).toString() }));
+  }
+  S.sub.forEach(n => {
+    if (!n.isConnected) return;
+    const b = localBox(n);
+    overlay.append(el("rect", { x:b.x, y:b.y, width:b.width, height:b.height,
+      fill:"rgba(95,168,124,.16)", stroke:"#5fa87c", "stroke-width":1.2/z, transform: docMat(n).toString() }));
+  });
+  const f = selFrame(); if (!f) return;
+  const pts = corners(f.b).map(([x,y]) => f.m.transformPoint(new DOMPoint(x,y)));
+  const poly = el("polygon", { points: pts.map(p => `${p.x},${p.y}`).join(" "), fill:"none",
+    stroke:"#c9a253", "stroke-width":1.25/z });
+  overlay.append(poly);
+  // rotate handle
+  const mid = { x:(pts[0].x+pts[1].x)/2, y:(pts[0].y+pts[1].y)/2 };
+  const dir = { x: pts[0].y - pts[3].y, y: pts[3].x - pts[0].x };
+  const dl = Math.hypot(dir.x, dir.y) || 1;
+  const rp = { x: mid.x + dir.x/dl * 26/z, y: mid.y + dir.y/dl * 26/z };
+  overlay.append(el("line", { x1:mid.x, y1:mid.y, x2:rp.x, y2:rp.y, stroke:"#c9a253", "stroke-width":1/z }));
+  overlay.append(el("circle", { cx:rp.x, cy:rp.y, r:hs, fill:"#c9a253", "data-h":"rot" }));
+  pts.forEach((p,i) => overlay.append(el("rect", {
+    x:p.x-hs, y:p.y-hs, width:hs*2, height:hs*2, fill:"#15171b", stroke:"#c9a253", "stroke-width":1.25/z, "data-h":i
+  })));
+  overlay.setAttribute("pointer-events", "none");
+  overlay._pts = pts; overlay._rot = rp; overlay._hs = hs;
+}
+function hitHandle(p) {
+  if (!overlay._pts || !S.sel.length) return null;
+  const t = (overlay._hs || 5) * 2.2;
+  if (Math.hypot(p.x - overlay._rot.x, p.y - overlay._rot.y) < t) return "rot";
+  for (let i = 0; i < 4; i++) if (Math.hypot(p.x - overlay._pts[i].x, p.y - overlay._pts[i].y) < t) return i;
+  return null;
+}
+
+/* ---------- status ---------- */
+function updateStatus() {
+  const all = allTop();
+  $("#stCount").textContent = all.length + (S.sel.length ? ` · ${S.sel.length} selected` : "");
+  const ln = $("#layerN"); if (ln) ln.textContent = all.length;
+  const bb = aabbOf(all);
+  const w = $("#warn");
+  if (!bb) { w.textContent = "empty bed"; w.className = "ok"; return; }
+  const over = bb.x < -0.5 || bb.y < -0.5 || bb.x + bb.width > S.bedW*PPI + 0.5 || bb.y + bb.height > S.bedH*PPI + 0.5;
+  w.textContent = over ? "⚠ artwork extends past the bed" : "fits on bed";
+  w.className = over ? "" : "ok";
+}
+
+/* ---------- undo ---------- */
+function snapshot() {
+  S.undo.push({ html: content.innerHTML, sel: S.sel.map(n => n.getAttribute("data-id")) });
+  if (S.undo.length > 80) S.undo.shift();
+  S.redo.length = 0;
+  markDirty();
+  $("#btnUndo").disabled = false; $("#btnRedo").disabled = true;
+}
+function restore(rec) {
+  content.innerHTML = rec.html;
+  S.scope = null; renderCrumb();
+  S.sel = rec.sel.map(id => content.querySelector(`[data-id="${id}"]`)).filter(Boolean);
+  drawOverlay(); renderInspector(); renderLayers(); updateStatus();
+}
+function undo() {
+  if (!S.undo.length) return;
+  S.redo.push({ html: content.innerHTML, sel: S.sel.map(n => n.getAttribute("data-id")) });
+  restore(S.undo.pop());
+  $("#btnUndo").disabled = !S.undo.length; $("#btnRedo").disabled = false;
+}
+function redo() {
+  if (!S.redo.length) return;
+  S.undo.push({ html: content.innerHTML, sel: S.sel.map(n => n.getAttribute("data-id")) });
+  restore(S.redo.pop());
+  $("#btnRedo").disabled = !S.redo.length; $("#btnUndo").disabled = false;
+}
+
+/* ============================================================
+   Pointer interaction / tools
+   ============================================================ */
+let drag = null;
+const viewport = $("#viewport");
+
+function setTool(t) {
+  S.tool = t;
+  document.querySelectorAll(".tool").forEach(b => b.classList.toggle("on", b.dataset.tool === t));
+  viewport.classList.toggle("crosshair", t !== "select" && t !== "pan");
+  if (t !== "select" && t !== "lasso") select([]);
+  if (t !== "lasso") setSub([]);
+  renderInspector();
+}
+
+viewport.addEventListener("pointerdown", e => {
+  if (e.button === 1 || S.tool === "pan" || spaceDown) {
+    drag = { kind: "pan", sx: e.clientX, sy: e.clientY, px: S.panX, py: S.panY };
+    viewport.classList.add("panning"); viewport.setPointerCapture(e.pointerId); return;
+  }
+  const p = ptFromEvent(e);
+  if (S.tool === "lasso") {
+    sampleCache = new WeakMap();
+    drag = { kind: "lasso", pts: [[p.x, p.y]], add: e.shiftKey, pool: lassoCandidates(), last: 0, hits: [] };
+    if (!drag.pool.length) toast("Nothing on the bed to lasso");
+    viewport.setPointerCapture(e.pointerId);
+    return;
+  }
+  if (S.tool === "select") {
+    const h = hitHandle(p);
+    if (h !== null) {
+      const f = selFrame();
+      snapshot();
+      if (h === "rot") {
+        const c = f.m.transformPoint(new DOMPoint(f.b.x + f.b.width/2, f.b.y + f.b.height/2));
+        drag = { kind: "rot", cx: c.x, cy: c.y, a0: Math.atan2(p.y - c.y, p.x - c.x), acc: new DOMMatrix() };
+      } else {
+        const inv = f.m.inverse();
+        const cs = corners(f.b);
+        const anch = cs[(h + 2) % 4];
+        drag = { kind: "scale", f, inv, anch, hIdx: h, acc: new DOMMatrix() };
+      }
+      viewport.setPointerCapture(e.pointerId); return;
+    }
+    const hit = hitAt(e);
+    if (hit) {
+      if (e.shiftKey) select(hit, true);
+      else if (!S.sel.includes(hit)) select(hit);
+      snapshot();
+      drag = { kind: "move", x0: p.x, y0: p.y, acc: new DOMMatrix(), moved: false };
+    } else {
+      if (!e.shiftKey) { select([]); if (S.scope) { setScope(null); renderLayers(); drawOverlay(); } }
+      drag = { kind: "marquee", x0: p.x, y0: p.y, add: e.shiftKey };
+    }
+    viewport.setPointerCapture(e.pointerId);
+    return;
+  }
+  // shape tools
+  if (S.tool === "text") {
+    snapshot();
+    const t = el("text", { x: 0, y: 0, "font-family": "Helvetica, Arial, sans-serif", "font-size": 48,
+      "data-kind": "text", "xml:space": "preserve" });
+    t.textContent = "Text";
+    setMat(t, new DOMMatrix().translate(p.x, p.y));
+    addObject(t, { op: S.activeOp });
+    select(t); setTool("select"); renderInspector();
+    setTimeout(() => { const i = document.querySelector("#txtBody"); if (i) { i.focus(); i.select(); } }, 30);
+    return;
+  }
+  snapshot();
+  drag = { kind: "draw", x0: p.x, y0: p.y, node: null };
+  viewport.setPointerCapture(e.pointerId);
+});
+
+viewport.addEventListener("dblclick", e => {
+  if (S.tool !== "select") return;
+  const hit = hitAt(e);
+  if (!hit || !hit.children.length || hit.tagName.toLowerCase() !== "g" || atomic(hit)) return;
+  let n = e.target;
+  while (n && n.parentNode !== hit) n = n.parentNode;
+  if (!n) return;
+  if (!n.getAttribute("data-id")) n.setAttribute("data-id", nextId());
+  setScope(hit);
+  select(n);
+  renderLayers();
+  toast(`Inside ${labelFor(hit)} — Esc or click the bed to step out`);
+});
+
+viewport.addEventListener("pointermove", e => {
+  const p = ptFromEvent(e);
+  $("#stCursor").textContent = `${fmtU(p.x)}, ${fmtU(p.y)} ${S.unit}`;
+  if (!drag) {
+    if (S.tool === "select") {
+      const h = hitAt(e);
+      if (h !== hoverN) { hoverN = h; drawOverlay(); }
+      viewport.style.cursor = h ? "move" : "";
+    }
+    return;
+  }
+  if (drag.kind === "pan") {
+    S.panX = drag.px + (e.clientX - drag.sx); S.panY = drag.py + (e.clientY - drag.sy);
+    applyView(); return;
+  }
+  if (drag.kind === "move") {
+    let dx = p.x - drag.x0, dy = p.y - drag.y0;
+    if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+    if (S.snap > 0 && !e.altKey) {
+      if (!drag.origin) drag.origin = aabbOf(S.sel);
+      dx = snapVal(drag.origin.x + dx) - drag.origin.x;
+      dy = snapVal(drag.origin.y + dy) - drag.origin.y;
+    }
+    const M = new DOMMatrix().translate(dx, dy);
+    const D = M.multiply(drag.acc.inverse());
+    applyMat(D); drag.acc = M; drag.moved = true;
+    drawOverlay(); syncNumbers(); return;
+  }
+  if (drag.kind === "scale") {
+    const f = drag.f, lp = drag.inv.transformPoint(new DOMPoint(p.x, p.y));
+    const a = drag.anch;
+    let sx = (lp.x - a[0]) / ((corners(f.b)[drag.hIdx][0]) - a[0] || 1e-6);
+    let sy = (lp.y - a[1]) / ((corners(f.b)[drag.hIdx][1]) - a[1] || 1e-6);
+    if (!e.altKey) { const s = Math.max(Math.abs(sx), Math.abs(sy)); sx = Math.sign(sx || 1) * s; sy = Math.sign(sy || 1) * s; }
+    sx = Math.abs(sx) < 1e-3 ? 1e-3 * Math.sign(sx || 1) : sx;
+    sy = Math.abs(sy) < 1e-3 ? 1e-3 * Math.sign(sy || 1) : sy;
+    const local = new DOMMatrix().translate(a[0], a[1]).scale(sx, sy).translate(-a[0], -a[1]);
+    const M = f.m.multiply(local).multiply(f.m.inverse());
+    const D = M.multiply(drag.acc.inverse());
+    applyMat(D); drag.acc = M;
+    drawOverlay(); syncNumbers(); return;
+  }
+  if (drag.kind === "rot") {
+    let a = Math.atan2(p.y - drag.cy, p.x - drag.cx) - drag.a0;
+    if (e.shiftKey) a = Math.round(a / (Math.PI / 12)) * (Math.PI / 12);
+    const M = new DOMMatrix().translate(drag.cx, drag.cy).rotate(a * 180 / Math.PI).translate(-drag.cx, -drag.cy);
+    const D = M.multiply(drag.acc.inverse());
+    applyMat(D); drag.acc = M;
+    drawOverlay(); syncNumbers(); return;
+  }
+  if (drag.kind === "lasso") {
+    const last = drag.pts[drag.pts.length - 1];
+    if (Math.hypot(p.x - last[0], p.y - last[1]) * S.zoom > 3) drag.pts.push([p.x, p.y]);
+    const now = performance.now();
+    if (drag.pts.length > 2 && now - drag.last > 70) {
+      drag.last = now;
+      drag.hits = lassoPick(drag.pts, drag.pool);
+    }
+    overlay.textContent = "";
+    const zz = S.zoom;
+    drag.hits.forEach(n => {
+      const b = localBox(n);
+      overlay.append(el("rect", { x:b.x, y:b.y, width:b.width, height:b.height,
+        fill:"rgba(95,168,124,.18)", stroke:"#5fa87c", "stroke-width":1.1/zz, transform: docMat(n).toString() }));
+    });
+    overlay.append(el("polygon", {
+      points: drag.pts.map(q => `${q[0]},${q[1]}`).join(" "),
+      fill: "rgba(95,168,124,.10)", stroke: "#5fa87c", "stroke-width": 1.4/zz,
+      "stroke-dasharray": `${5/zz} ${3/zz}`, "stroke-linejoin": "round"
+    }));
+    if (drag.hits.length) {
+      const c = drag.pts[drag.pts.length - 1];
+      const t = el("text", { x: c[0] + 8/zz, y: c[1] - 8/zz, fill: "#5fa87c",
+        "font-family": "ui-monospace, monospace", "font-size": 11/zz });
+      t.textContent = drag.hits.length + " caught";
+      overlay.append(t);
+    }
+    return;
+  }
+  if (drag.kind === "marquee") {
+    const x = Math.min(drag.x0, p.x), y = Math.min(drag.y0, p.y);
+    const w = Math.abs(p.x - drag.x0), h = Math.abs(p.y - drag.y0);
+    overlay.textContent = "";
+    overlay.append(el("rect", { x, y, width: w, height: h, fill: "rgba(201,162,83,.10)",
+      stroke: "#c9a253", "stroke-width": 1 / S.zoom, "stroke-dasharray": `${4/S.zoom} ${3/S.zoom}` }));
+    drag.box = { x, y, width: w, height: h }; return;
+  }
+  if (drag.kind === "draw") {
+    let x = Math.min(drag.x0, p.x), y = Math.min(drag.y0, p.y);
+    let w = Math.abs(p.x - drag.x0), h = Math.abs(p.y - drag.y0);
+    if (e.shiftKey) { const s = Math.max(w, h); w = s; h = s; if (p.x < drag.x0) x = drag.x0 - s; if (p.y < drag.y0) y = drag.y0 - s; }
+    if (!drag.node) {
+      drag.node = makeShape(S.tool);
+      addObject(drag.node, { op: S.activeOp });
+    }
+    updateShape(drag.node, S.tool, { x, y, w, h, x0: drag.x0, y0: drag.y0, x1: p.x, y1: p.y });
+    return;
+  }
+});
+
+function endDrag(e) {
+  if (!drag) return;
+  viewport.classList.remove("panning");
+  if (drag.kind === "lasso") {
+    const hits = drag.pts.length > 2 ? lassoPick(drag.pts, drag.pool) : [];
+    setSub(drag.add ? [...new Set([...S.sub, ...hits])] : hits);
+    drag = null;
+    if (!hits.length) toast(S.lassoMode === "enclosed"
+      ? "Nothing fully enclosed — try Touching mode, or draw a wider loop"
+      : "Nothing caught in the lasso");
+    else toast(`${S.sub.length} piece${S.sub.length === 1 ? "" : "s"} selected — split, delete, or keep only these`);
+    renderInspector(); renderLayers(); updateStatus();
+    return;
+  }
+  if (drag.kind === "marquee") {
+    const b = drag.box;
+    if (b && (b.width > 2 || b.height > 2)) {
+      const hits = objects().filter(n => {
+        if (n.style && n.style.display === "none") return false;
+        const a = aabbOf([n]);
+        return a && a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+      });
+      select(hits, drag.add);
+    } else { drawOverlay(); }
+  } else if (drag.kind === "draw") {
+    if (drag.node) {
+      const a = aabbOf([drag.node]);
+      if (!a || (a.width < 1.5 && a.height < 1.5)) { drag.node.remove(); S.undo.pop(); }
+      else { select(drag.node); }
+    } else S.undo.pop();
+    setTool("select");
+  } else if (drag.kind === "move" && !drag.moved) {
+    S.undo.pop();
+  }
+  drag = null;
+  renderInspector(); renderLayers(); updateStatus();
+}
+viewport.addEventListener("pointerup", endDrag);
+viewport.addEventListener("pointercancel", endDrag);
+
+viewport.addEventListener("wheel", e => {
+  e.preventDefault();
+  const r = viewport.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  if (e.ctrlKey || e.metaKey || !e.shiftKey) {
+    const before = toDoc(mx, my);
+    const f = Math.exp(-e.deltaY * 0.0018);
+    S.zoom = clamp(S.zoom * f, 0.05, 40);
+    S.panX = mx - before.x * S.zoom; S.panY = my - before.y * S.zoom;
+  } else { S.panX -= e.deltaX; S.panY -= e.deltaY; }
+  applyView();
+}, { passive: false });
+
+/* ---------- shape factories ---------- */
+function makeShape(kind) {
+  if (kind === "rect") return el("rect", { "data-kind": "rect" });
+  if (kind === "ellipse") return el("ellipse", { "data-kind": "ellipse" });
+  if (kind === "line") return el("line", { "data-kind": "line" });
+  if (kind === "poly") return el("polygon", { "data-kind": "poly" });
+  return el("rect");
+}
+function updateShape(n, kind, g) {
+  if (kind === "rect") {
+    n.setAttribute("x", g.x); n.setAttribute("y", g.y);
+    n.setAttribute("width", g.w); n.setAttribute("height", g.h);
+    const r = clamp(S.shape.rx, 0, Math.min(g.w, g.h) / 2);
+    if (r > 0) { n.setAttribute("rx", r); n.setAttribute("ry", r); } else { n.removeAttribute("rx"); n.removeAttribute("ry"); }
+  }
+  else if (kind === "ellipse") { n.setAttribute("cx", g.x + g.w/2); n.setAttribute("cy", g.y + g.h/2); n.setAttribute("rx", g.w/2); n.setAttribute("ry", g.h/2); }
+  else if (kind === "line") { n.setAttribute("x1", g.x0); n.setAttribute("y1", g.y0); n.setAttribute("x2", g.x1); n.setAttribute("y2", g.y1); }
+  else if (kind === "poly") {
+    const cx = g.x + g.w/2, cy = g.y + g.h/2, R = Math.max(g.w, g.h)/2;
+    n.setAttribute("points", polyPoints(cx, cy, R, S.shape.sides, S.shape.star, S.shape.ratio));
+    n.setAttribute("data-poly", JSON.stringify({ cx, cy, R }));
+    n.setAttribute("data-sides", S.shape.sides);
+    n.setAttribute("data-star", S.shape.star ? 1 : 0);
+    n.setAttribute("data-ratio", S.shape.ratio);
+  }
+}
+function polyPoints(cx, cy, R, n, star, ratio) {
+  const pts = [];
+  n = clamp(Math.round(n) || 5, 3, 60);
+  const total = star ? n * 2 : n;
+  for (let i = 0; i < total; i++) {
+    const r = star && i % 2 ? R * clamp(ratio === undefined ? 0.45 : ratio, 0.05, 0.98) : R;
+    const a = -Math.PI / 2 + i * 2 * Math.PI / total;
+    pts.push(`${(cx + Math.cos(a) * r).toFixed(2)},${(cy + Math.sin(a) * r).toFixed(2)}`);
+  }
+  return pts.join(" ");
+}
+
+/* ============================================================
+   Operations (colour = machine setting)
+   ============================================================ */
+function applyOp(node, idx) {
+  const op = S.ops[idx]; if (!op) return;
+  node.setAttribute("data-op", idx);
+  const walk = n => {
+    if (n.nodeType !== 1) return;
+    const tag = n.tagName.toLowerCase();
+    if (n.getAttribute("data-guide")) return;      // invisible text baseline
+    if (tag === "image") { /* raster engraves as-is */ }
+    else if (["path","rect","circle","ellipse","line","polyline","polygon","text","tspan"].includes(tag)) {
+      n.style.removeProperty("fill"); n.style.removeProperty("stroke");
+      if (op.mode === "engrave") {
+        n.setAttribute("fill", op.color); n.setAttribute("stroke", "none");
+      } else {
+        n.setAttribute("stroke", op.color); n.setAttribute("fill", "none");
+        n.setAttribute("stroke-width", 1);
+        n.setAttribute("vector-effect", "non-scaling-stroke");
+      }
+    }
+    [...n.children].forEach(walk);
+  };
+  walk(node);
+  // an unfilled line/polyline can never engrave
+  if (op.mode === "engrave" && node.getAttribute("data-kind") === "line") {
+    node.setAttribute("stroke", op.color); node.setAttribute("fill", "none");
+  }
+}
+function usedColors() {
+  const map = new Map();
+  content.querySelectorAll("*").forEach(n => {
+    ["stroke", "fill"].forEach(k => {
+      let v = n.getAttribute(k);
+      if (!v || v === "none" || v.startsWith("url")) return;
+      v = v.toLowerCase();
+      map.set(v, (map.get(v) || 0) + 1);
+    });
+  });
+  return map;
+}
+
+/* ============================================================
+   Inspector
+   ============================================================ */
+function renderInspector() {
+  const i = $("#insp");
+  const n = S.sel.length;
+  const bb = n ? aabbOf(S.sel) : null;
+  const single = n === 1 ? S.sel[0] : null;
+  const isText = !!textNodeOf(single);
+  const rot = single ? (Math.atan2(getMat(single).b, getMat(single).a) * 180 / Math.PI) : 0;
+
+  let html = "";
+
+  /* --- geometry --- */
+  html += `<div class="sec"><h3>Geometry</h3>`;
+  if (!n) html += `<p class="empty">Nothing selected. Drag a box to select, or drop a file on the bed.</p>`;
+  else {
+    html += `<div class="grid2">
+      ${fieldHTML("X", "fX", fmtU(bb.x))}
+      ${fieldHTML("Y", "fY", fmtU(bb.y))}
+      ${fieldHTML("W", "fW", fmtU(bb.width))}
+      ${fieldHTML("H", "fH", fmtU(bb.height))}
+    </div>
+    <div class="grid2" style="margin-top:6px">
+      ${fieldHTML("Angle", "fR", rot.toFixed(2), "°")}
+      <label class="chk" style="margin:0;justify-content:center"><input type="checkbox" id="lockAR" checked> lock ratio</label>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="bFlipH" title="Mirror left to right — Shift+H">Flip ↔</button>
+      <button class="btn sm" id="bFlipV" title="Mirror top to bottom — Shift+V">Flip ↕</button>
+      <button class="btn sm" id="bRotL" title="Rotate 90° counter-clockwise">↺ 90°</button>
+      <button class="btn sm" id="bRotR" title="Rotate 90° clockwise">↻ 90°</button>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="bCenterH">Center ↔</button>
+      <button class="btn sm" id="bCenterV">Center ↕</button>
+      <button class="btn sm" id="bFitBed">Fit bed</button>
+    </div>
+    <h3 style="margin-top:14px">Align</h3>
+    <div class="iconrow">
+      ${alignBtn("l","M4 3v18M8 8h11v3H8zM8 14h7v3H8z")}
+      ${alignBtn("c","M12 3v18M6 8h12v3H6zM8 14h8v3H8z")}
+      ${alignBtn("r","M20 3v18M5 8h11v3H5zM9 14h7v3H9z")}
+      ${alignBtn("t","M3 4h18M8 8h3v11H8zM14 8h3v7h-3z")}
+      ${alignBtn("m","M3 12h18M8 6h3v12H8zM14 8h3v8h-3z")}
+      ${alignBtn("b","M3 20h18M8 5h3v11H8zM14 9h3v7h-3z")}
+    </div>
+    <div class="row">
+      <button class="btn sm" id="bDistH">Space ↔</button>
+      <button class="btn sm" id="bDistV">Space ↕</button>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="bFront">Bring front</button>
+      <button class="btn sm" id="bBack">Send back</button>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="bGroup">Group</button>
+      <button class="btn sm" id="bUngroup">Ungroup</button>
+      <button class="btn sm" id="bDup">Duplicate</button>
+    </div>`;
+  }
+  html += `</div>`;
+
+  /* --- text --- */
+  if (isText) {
+    const tn = textNodeOf(single);
+    const fs = +(tn.getAttribute("font-size") || 48);
+    const curved = !!tn.querySelector("textPath");
+    html += `<div class="sec"><h3>Text</h3>
+      <textarea class="ta" id="txtBody">${esc(textOf(tn))}</textarea>
+      <div class="row"><select class="sel" id="txtFont">${fontOptions(tn.getAttribute("font-family"))}</select></div>
+      <div class="row">
+        ${fieldHTML("Size", "txtSize", (fs / PPI * 72).toFixed(1), "pt")}
+        <select class="sel" id="txtWeight" style="flex:1">
+          <option value="400">Regular</option><option value="700"${tn.getAttribute("font-weight") === "700" ? " selected" : ""}>Bold</option>
+        </select>
+      </div>
+      <div class="row">
+        ${fieldHTML("Track", "txtTrack", (+(tn.getAttribute("letter-spacing") || 0)).toFixed(1), "px")}
+        ${fieldHTML("Line", "txtLead", (+(tn.getAttribute("data-lead") || 1.2)).toFixed(2), "×")}
+      </div>
+
+      <h3 style="margin-top:14px">Curve on a circle</h3>
+      <label class="chk" style="margin-top:0"><input type="checkbox" id="curveOn"${curved ? " checked" : ""}> bend the baseline</label>
+      ${curved ? `
+      <div class="row">
+        ${fieldHTML("Radius", "curveR", toU(+(tn.getAttribute("data-radius") || 144)).toFixed(3))}
+        <select class="sel" id="curveArch" style="flex:1">
+          <option value="up"${tn.getAttribute("data-arch") !== "down" ? " selected" : ""}>Arch up — top of circle</option>
+          <option value="down"${tn.getAttribute("data-arch") === "down" ? " selected" : ""}>Arch down — bottom</option>
+        </select>
+      </div>
+      <div class="row">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--dim);width:52px">ROTATE</label>
+        <input type="range" id="curveOff" min="0" max="100" step="0.5" value="${+(tn.getAttribute("data-offset") || 50)}">
+      </div>` : ""}
+      <p class="hint">${curved
+        ? "Radius is measured to the baseline. Drop the size or widen the radius if letters start to overlap."
+        : "Bends the line into a ring — the classic badge or coaster layout."}</p>
+      <p class="hint" style="color:var(--brass)">Outline text before you print: <b>Trace to paths</b> with distance 0. Glowforge won't have your font.</p>
+    </div>`;
+  }
+
+  /* --- fonts --- */
+  html += `<div class="sec"><h3>Fonts</h3>
+    <div class="drop" id="fontDrop">Drop a TTF, OTF or WOFF here<br><span style="opacity:.7">or click to browse</span></div>`;
+  if (S.fonts.length) {
+    html += `<div style="margin-top:8px">` + S.fonts.map((f, k) => `
+      <div class="fontrow">
+        <span class="prev" style="font-family:'${esc(f.family)}'">Ag</span>
+        <span class="fname">${esc(f.family)}</span>
+        <button data-delfont="${k}" title="Remove">✕</button>
+      </div>`).join("") + `</div>`;
+  }
+  html += `<p class="hint">Fonts live in this session only${S.fonts.length ? " — reload and you'll add them again" : ""}. They're embedded into traced paths, so outlined text keeps its shape anywhere.</p></div>`;
+
+  /* --- shape picker --- */
+  const shapeCtx = ["rect","ellipse","line","poly"].includes(S.tool) ||
+    (single && ["poly","rect"].includes(single.getAttribute("data-kind")));
+  if (shapeCtx) {
+    const isPoly = S.tool === "poly" || (single && single.getAttribute("data-kind") === "poly");
+    html += `<div class="sec"><h3>Shape</h3>
+      <div class="shapes">
+        ${shapeBtn("rect","rect", '<rect x="3" y="5" width="18" height="14" rx="1"/>')}
+        ${shapeBtn("round","rect", '<rect x="3" y="5" width="18" height="14" rx="5"/>')}
+        ${shapeBtn("ellipse","ellipse", '<ellipse cx="12" cy="12" rx="9" ry="7"/>')}
+        ${shapeBtn("tri","poly", '<path d="M12 4l8 15H4z"/>')}
+        ${shapeBtn("hex","poly", '<path d="M8 4h8l4 8-4 8H8l-4-8z"/>')}
+        ${shapeBtn("star","poly", '<path d="M12 3l2.7 5.9 6.3.8-4.6 4.4 1.2 6.4L12 17.4 6.4 20.5l1.2-6.4L3 9.7l6.3-.8z"/>')}
+      </div>
+      <div class="row" style="margin-top:8px">
+        ${fieldHTML("Sides", "shSides", S.shape.sides, "")}
+        <label class="chk" style="margin:0;flex:1;justify-content:center"><input type="checkbox" id="shStar"${S.shape.star ? " checked" : ""}> star points</label>
+      </div>
+      ${S.shape.star ? `<div class="row"><label style="font-family:var(--mono);font-size:10px;color:var(--dim);width:52px">INNER</label>
+        <input type="range" id="shRatio" min="5" max="95" value="${Math.round(S.shape.ratio*100)}"></div>` : ""}
+      <div class="row">${fieldHTML("Corner", "shRx", toU(S.shape.rx).toFixed(3))}</div>
+      <p class="hint">${isPoly ? "Sides and star apply to the next shape you draw, and live-edit whatever polygon is selected." : "Corner radius applies to rectangles."}</p>
+    </div>`;
+  }
+
+  /* --- lasso --- */
+  if (S.tool === "lasso" || S.sub.length) {
+    html += `<div class="sec"><h3>Lasso</h3>
+      <div class="row">
+        <button class="btn sm ${S.lassoMode === "enclosed" ? "primary" : ""}" data-lmode="enclosed">Enclosed</button>
+        <button class="btn sm ${S.lassoMode === "touching" ? "primary" : ""}" data-lmode="touching">Touching</button>
+      </div>
+      <p class="hint" style="margin-top:6px">${S.sel.length
+        ? `Searching inside the ${S.sel.length} selected object${S.sel.length === 1 ? "" : "s"}.`
+        : "Searching every piece on the bed. Select a drawing first to narrow it down."}</p>`;
+    if (S.sub.length) {
+      html += `<p class="hint" style="color:var(--ok);margin-top:8px"><b>${S.sub.length}</b> piece${S.sub.length === 1 ? "" : "s"} caught.</p>
+      <div class="row"><select class="sel" id="lassoOp">${S.ops.map((o,k)=>`<option value="${k}">${esc(o.name)}</option>`).join("")}</select></div>
+      <div class="row"><button class="btn primary" id="bSubSplit">Split onto its own layer</button></div>
+      <div class="row">
+        <button class="btn sm" id="bSubKeep">Keep only these</button>
+        <button class="btn sm" id="bSubDel">Delete these</button>
+        <button class="btn sm" id="bSubClear">Clear</button>
+      </div>
+      <p class="hint">Splitting moves the pieces to a new layer and applies that operation, so one half can cut while the other engraves.</p>`;
+    } else {
+      html += `<p class="hint">Draw a loop around part of an imported drawing to pull it out.</p>`;
+    }
+    html += `</div>`;
+  }
+
+  /* --- operations --- */
+  html += `<div class="sec"><h3>Operations</h3>`;
+  S.ops.forEach((op, k) => {
+    html += `<div class="op ${k === S.activeOp ? "sel" : ""}" data-op="${k}">
+      <span class="sw" style="background:${op.color}"></span>
+      <span class="nm">${esc(op.name)}<em>${op.mode}${op.mode === "engrave" ? " · fill" : " · stroke"}</em></span>
+      <span class="ct">${op.color.toUpperCase()}</span>
+    </div>
+    <div class="opedit ${S.editingOp === k ? "on" : ""}" data-ope="${k}">
+      <div class="row"><input type="text" data-opname="${k}" value="${esc(op.name)}"></div>
+      <div class="row"><input type="color" data-opcolor="${k}" value="${op.color}"></div>
+      <div class="row"><select class="sel" data-opmode="${k}">
+        <option value="cut"${op.mode==="cut"?" selected":""}>Cut — stroke only</option>
+        <option value="score"${op.mode==="score"?" selected":""}>Score — stroke only</option>
+        <option value="engrave"${op.mode==="engrave"?" selected":""}>Engrave — filled</option>
+      </select></div>
+    </div>`;
+  });
+  html += `<div class="row">
+      <button class="btn primary" id="bApplyOp" ${n?"":"disabled"}>Apply to selection</button>
+      <button class="btn sm" id="bAddOp" style="flex:0 0 34px">+</button>
+    </div>
+    <p class="hint">Each distinct colour becomes its own step in the Glowforge app, so you set power and speed per colour. Click a row to rename or recolour it.</p>`;
+
+  const cols = usedColors();
+  if (cols.size) {
+    html += `<h3 style="margin-top:14px">Colours in file</h3><div>`;
+    [...cols.entries()].sort((a,b) => b[1]-a[1]).slice(0, 12).forEach(([c, ct]) => {
+      html += `<div class="lyr" data-pickcolor="${c}"><span class="sw" style="width:12px;height:12px;border-radius:3px;border:1px solid #555;background:${c}"></span>
+        <span class="t" style="font-family:var(--mono);font-size:11px">${esc(c)}</span><span class="k">${ct}</span></div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  /* --- outline / trace --- */
+  const T = S.trace;
+  const hasImg = S.sel.some(n => n.tagName.toLowerCase() === "image");
+  html += `<div class="sec"><h3>Outline &amp; trace</h3>
+    <div class="row">
+      ${fieldHTML("Distance", "trDist", S.unit === "in" ? "0.125" : "3", S.unit)}
+      <select class="sel" id="trOp" style="flex:1">${S.ops.map((o,k)=>`<option value="${k}"${k===0?" selected":""}>${esc(o.name)}</option>`).join("")}</select>
+    </div>
+    <div class="row">
+      <button class="btn" id="bOutline" ${n?"":"disabled"}>Outline outward</button>
+      <button class="btn" id="bInset" ${n?"":"disabled"}>Inset (kerf)</button>
+    </div>
+    <div class="row">
+      <button class="btn" id="bTrace" ${n?"":"disabled"}>Trace to paths</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="trReplace"> replace the original</label>
+
+    <h3 style="margin-top:14px">Trace settings</h3>
+    <div class="row">
+      <label style="font-family:var(--mono);font-size:10px;color:var(--dim);width:54px">DETAIL</label>
+      <select class="sel" id="trQual" style="flex:1">
+        <option value="draft"${T.quality==="draft"?" selected":""}>Draft — fastest</option>
+        <option value="normal"${T.quality==="normal"?" selected":""}>Normal</option>
+        <option value="fine"${T.quality==="fine"?" selected":""}>Fine — small text</option>
+        <option value="max"${T.quality==="max"?" selected":""}>Maximum — slow</option>
+      </select>
+    </div>
+    <div class="grid2" style="margin-top:6px">
+      ${fieldHTML("Line", "trWeight", T.weight.toFixed(2), "px")}
+      ${fieldHTML("Smooth", "trSimp", T.simplify.toFixed(2), "px")}
+    </div>
+    <div class="row">${fieldHTML("Min size", "trMin", toU(Math.sqrt(T.minArea * PPI * PPI)).toFixed(3))}</div>
+    <label class="chk"><input type="checkbox" id="trSmooth"${T.smooth?" checked":""}> fit curves instead of straight segments</label>
+    <label class="chk"><input type="checkbox" id="trHoles"${T.holes?" checked":""}> keep interior holes</label>
+    ${hasImg ? `
+    <h3 style="margin-top:14px">Bitmap</h3>
+    <div class="row">
+      <label style="font-family:var(--mono);font-size:10px;color:var(--dim);width:54px">CUTOFF</label>
+      <input type="range" id="trThresh" min="10" max="245" value="${T.threshold}">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);width:26px;text-align:right">${T.threshold}</span>
+    </div>
+    <label class="chk"><input type="checkbox" id="trInvert"${T.invert?" checked":""}> invert — trace the light areas</label>
+    <p class="hint">Raise the cutoff to catch lighter greys, lower it to keep only the darkest ink.</p>` : ""}
+    <div class="row"><button class="btn sm" id="trReset">Reset to defaults</button></div>
+    <p class="hint"><b>Line</b> fattens thin strokes before tracing, so hairlines survive. <b>Smooth</b> is how far the path may stray from the raster — raise it for fewer nodes, lower it for fidelity. <b>Min size</b> discards specks below that dimension.</p>
+    <p class="hint">Outline builds a cut line around whatever is selected. Inset shrinks a shape by half your kerf so press-fit parts actually fit. Trace at distance 0 converts text or a bitmap into real paths.</p>
+  </div>`;
+
+  /* --- array --- */
+  html += `<div class="sec"><h3>Grid array</h3>
+    <div class="grid3">
+      ${fieldHTML("Cols", "arCols", 3, "")}
+      ${fieldHTML("Rows", "arRows", 2, "")}
+      ${fieldHTML("Gap", "arGap", S.unit === "in" ? "0.25" : "6", S.unit)}
+    </div>
+    <div class="row"><button class="btn" id="bArray" ${n?"":"disabled"}>Build array</button></div>
+  </div>`;
+
+  /* --- project --- */
+  if (S.server) {
+    html += `<div class="sec"><h3>Project</h3>
+      <div class="row">
+        <button class="btn primary" id="bSaveP">Save</button>
+        <button class="btn" id="bSaveAs">Save as…</button>
+      </div>
+      <div class="row"><button class="btn" id="bOpenP">Open a project</button></div>
+      <p class="hint">Saved on your server as plain JSON in <code>/data/projects</code>. Bed size, operations and every object come back exactly as you left them.</p>
+    </div>`;
+  }
+
+  /* --- export --- */
+  html += `<div class="sec"><h3>Export</h3>
+    <label class="chk"><input type="checkbox" id="exFull" checked> keep bed position</label>
+    <label class="chk"><input type="checkbox" id="exHair" checked> hairline strokes</label>
+    <div class="row"><button class="btn primary" id="bExport2">Export SVG for Glowforge</button></div>
+    <p class="hint">Exports at ${S.bedW} × ${S.bedH} in with the viewBox locked to 96 units per inch, so it lands in the Glowforge app at exactly the size you set here.</p>
+  </div>`;
+
+  i.innerHTML = html;
+  renderLayers();
+  wireInspector();
+}
+
+function fieldHTML(label, id, val, unit) {
+  return `<div class="field"><label for="${id}">${label}</label><input id="${id}" value="${val}"><span class="u">${unit === undefined ? S.unit : unit}</span></div>`;
+}
+function shapeBtn(k, tool, svg) {
+  const on = (S.shape.preset === k) ? " on" : "";
+  return `<button class="${on.trim()}" data-shape="${k}" data-shapetool="${tool}"><svg viewBox="0 0 24 24">${svg}</svg></button>`;
+}
+function alignBtn(k, d) { return `<button data-align="${k}"><svg viewBox="0 0 24 24"><path d="${d}"/></svg></button>`; }
+function fontOptions(cur) {
+  const built = ["Helvetica, Arial, sans-serif","Georgia, serif","Times New Roman, serif","Courier New, monospace",
+    "Verdana, sans-serif","Trebuchet MS, sans-serif","Palatino, serif","Impact, sans-serif","Comic Sans MS, cursive"];
+  let html = "";
+  if (S.fonts.length) {
+    html += `<optgroup label="Your fonts">` + S.fonts.map(f =>
+      `<option value="${esc(f.family)}"${cur === f.family ? " selected" : ""}>${esc(f.family)}</option>`).join("") + `</optgroup>`;
+  }
+  html += `<optgroup label="Built in">` + built.map(f =>
+    `<option value="${esc(f)}"${cur === f ? " selected" : ""}>${esc(f.split(",")[0])}</option>`).join("") + `</optgroup>`;
+  return html;
+}
+
+function labelFor(n) {
+  const custom = n.getAttribute("data-label");
+  if (custom) return custom;
+  const tag = n.tagName.toLowerCase();
+  const tn = n.getAttribute("data-kind") === "curvetext" ? n.querySelector("text") : (tag === "text" ? n : null);
+  if (tn) return (textOf(tn) || "Text").trim().slice(0, 26) || "Text";
+  if (n.getAttribute("data-name")) return n.getAttribute("data-name").replace(/\.(svg|png|jpe?g)$/i, "");
+  return kindOf(n);
+}
+function kindOf(n) {
+  const tag = n.tagName.toLowerCase();
+  const k = n.getAttribute("data-kind");
+  if (k === "curvetext") return "text";
+  if (k === "group") return "group";
+  if (k === "import") return "svg";
+  if (k) return k;
+  return tag;
+}
+function swatchOf(n) {
+  const op = S.ops[+n.getAttribute("data-op")];
+  if (op) return op.color;
+  const c = n.getAttribute("stroke") || n.getAttribute("fill");
+  if (c && c !== "none") return c;
+  const kid = n.querySelector("[stroke]:not([stroke=none]),[fill]:not([fill=none])");
+  if (kid) { const v = kid.getAttribute("stroke") || kid.getAttribute("fill"); if (v && v !== "none") return v; }
+  return "#5b6270";
+}
+const expandable = n => n.getAttribute("data-kind") === "group" && n.children.length > 0;
+const atomic = n => n.getAttribute("data-kind") === "curvetext";
+
+function renderLayers() {
+  const box = document.querySelector("#layers"); if (!box) return;
+  const rows = treeRows(content, 0);
+  box.innerHTML = rows.length ? rows.join("")
+    : `<p class="empty" style="padding:6px 4px">Bed is empty. Drop a file or draw something.</p>`;
+  wireLayers(box);
+  const ln = document.querySelector("#layerN");
+  if (ln) ln.textContent = content.children.length;
+}
+function treeRows(parent, depth) {
+  const out = [];
+  // top of the list = front of the stack, which is the end of the DOM
+  [...parent.children].reverse().forEach(n => {
+    const id = n.getAttribute("data-id");
+    if (!id) return;
+    const open = S.expanded.has(id), exp = expandable(n);
+    const hidden = n.style.display === "none";
+    out.push(`<div class="lyr${S.sel.includes(n) ? " sel" : ""}${hidden ? " dim" : ""}"
+        draggable="true" data-lid="${id}" style="padding-left:${6 + depth * 13}px">
+      <span class="tw${exp ? " can" : ""}" data-tw="${id}">${exp ? (open ? "▾" : "▸") : ""}</span>
+      <span class="sw" style="background:${swatchOf(n)}"></span>
+      <span class="t" data-name="${id}">${esc(labelFor(n))}</span>
+      <span class="k">${kindOf(n)}${exp ? " " + n.children.length : ""}</span>
+      <button class="eye${hidden ? " off" : ""}" data-eye="${id}" title="${hidden ? "Show" : "Hide"}">${hidden ? "◌" : "◉"}</button>
+    </div>`);
+    if (exp && open) out.push(...treeRows(n, depth + 1));
+  });
+  return out;
+}
+const byId = id => content.querySelector(`[data-id="${id}"]`);
+
+function wireLayers(box) {
+  box.querySelectorAll("[data-tw]").forEach(t => t.onclick = e => {
+    e.stopPropagation();
+    const id = t.dataset.tw;
+    if (!expandable(byId(id))) return;
+    S.expanded.has(id) ? S.expanded.delete(id) : S.expanded.add(id);
+    renderLayers();
+  });
+  box.querySelectorAll("[data-eye]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const n = byId(b.dataset.eye);
+    snapshot();
+    n.style.display = n.style.display === "none" ? "" : "none";
+    if (n.style.display === "none") select(S.sel.filter(x => x !== n));
+    renderLayers(); drawOverlay();
+  });
+  box.querySelectorAll("[data-name]").forEach(t => t.ondblclick = e => {
+    e.stopPropagation();
+    const n = byId(t.dataset.name), was = labelFor(n);
+    t.innerHTML = `<input value="${esc(was)}">`;
+    const i = t.querySelector("input"); i.focus(); i.select();
+    const done = keep => {
+      if (keep && i.value.trim() && i.value.trim() !== was) { snapshot(); n.setAttribute("data-label", i.value.trim()); }
+      renderLayers();
+    };
+    i.onblur = () => done(true);
+    i.onkeydown = ev => { if (ev.key === "Enter") { ev.preventDefault(); i.blur(); } if (ev.key === "Escape") { i.onblur = null; done(false); } };
+  });
+  box.querySelectorAll(".lyr").forEach(r => {
+    const n = byId(r.dataset.lid);
+    r.onclick = e => {
+      if (e.target.closest("input")) return;
+      setScope(n.parentNode === content ? null : n.parentNode);
+      select(n, e.shiftKey || e.metaKey || e.ctrlKey);
+    };
+    r.onmouseenter = () => { hoverN = n; drawOverlay(); };
+    r.onmouseleave = () => { if (hoverN === n) { hoverN = null; drawOverlay(); } };
+    r.ondragstart = e => { e.dataTransfer.setData("text/plain", r.dataset.lid); e.dataTransfer.effectAllowed = "move"; };
+    r.ondragover = e => {
+      e.preventDefault();
+      const b = r.getBoundingClientRect();
+      const above = e.clientY < b.top + b.height / 2;
+      r.classList.toggle("dropabove", above); r.classList.toggle("dropbelow", !above);
+    };
+    r.ondragleave = () => r.classList.remove("dropabove", "dropbelow");
+    r.ondrop = e => {
+      e.preventDefault();
+      const above = r.classList.contains("dropabove");
+      r.classList.remove("dropabove", "dropbelow");
+      const src = byId(e.dataTransfer.getData("text/plain"));
+      if (!src || src === n || src.contains(n)) return;
+      snapshot();
+      // the list is drawn front-to-back, so "above" means later in the DOM
+      reparent(src, n.parentNode, above ? n.nextSibling : n);
+      renderLayers(); drawOverlay(); updateStatus();
+    };
+  });
+}
+
+function syncNumbers() {
+  const bb = S.sel.length ? aabbOf(S.sel) : null; if (!bb) return;
+  const set = (id, v) => { const e = document.querySelector(id); if (e && document.activeElement !== e) e.value = v; };
+  set("#fX", fmtU(bb.x)); set("#fY", fmtU(bb.y)); set("#fW", fmtU(bb.width)); set("#fH", fmtU(bb.height));
+  if (S.sel.length === 1) set("#fR", (Math.atan2(getMat(S.sel[0]).b, getMat(S.sel[0]).a) * 180 / Math.PI).toFixed(2));
+}
+
+/* ============================================================
+   Inspector wiring
+   ============================================================ */
+function commitNum(id, fn) {
+  const e = document.querySelector(id); if (!e) return;
+  const run = () => { const v = parseFloat(e.value); if (isFinite(v)) { snapshot(); fn(v); drawOverlay(); syncNumbers(); updateStatus(); } };
+  e.addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); run(); e.blur(); } });
+  e.addEventListener("blur", run);
+}
+
+function wireInspector() {
+  commitNum("#fX", v => moveTo(fromU(v), null));
+  commitNum("#fY", v => moveTo(null, fromU(v)));
+  commitNum("#fW", v => resizeTo(fromU(v), null));
+  commitNum("#fH", v => resizeTo(null, fromU(v)));
+  commitNum("#fR", v => rotateTo(v));
+
+  const on = (id, fn) => { const e = document.querySelector(id); if (e) e.onclick = fn; };
+  on("#bCenterH", () => { snapshot(); const b = aabbOf(S.sel); applyMat(new DOMMatrix().translate((S.bedW*PPI - b.width)/2 - b.x, 0)); after(); });
+  on("#bCenterV", () => { snapshot(); const b = aabbOf(S.sel); applyMat(new DOMMatrix().translate(0, (S.bedH*PPI - b.height)/2 - b.y)); after(); });
+  on("#bFitBed", () => {
+    snapshot(); const b = aabbOf(S.sel);
+    const s = Math.min((S.bedW*PPI - 24) / b.width, (S.bedH*PPI - 24) / b.height);
+    applyMat(new DOMMatrix().translate(b.x, b.y).scale(s).translate(-b.x, -b.y));
+    const b2 = aabbOf(S.sel);
+    applyMat(new DOMMatrix().translate((S.bedW*PPI - b2.width)/2 - b2.x, (S.bedH*PPI - b2.height)/2 - b2.y));
+    after();
+  });
+  on("#bFront", () => { snapshot(); S.sel.forEach(n => content.append(n)); after(); });
+  on("#bBack", () => { snapshot(); S.sel.slice().reverse().forEach(n => content.prepend(n)); after(); });
+  on("#bGroup", groupSel);
+  on("#bUngroup", ungroupSel);
+  on("#bDup", duplicateSel);
+  on("#bApplyOp", () => { snapshot(); S.sel.forEach(n => applyOp(n, S.activeOp)); after(); });
+  on("#bAddOp", () => { S.ops.push({ name: "Operation " + (S.ops.length + 1), color: randColor(), mode: "cut" }); renderInspector(); });
+  on("#bFlipH", flipH);
+  on("#bFlipV", flipV);
+  on("#bRotL", () => rot90(-1));
+  on("#bRotR", () => rot90(1));
+  on("#bDistH", () => distributeSel("h"));
+  on("#bDistV", () => distributeSel("v"));
+  on("#bOutline", () => runTrace(+1));
+  on("#bInset", () => runTrace(-1));
+  on("#bTrace", () => runTrace(0));
+  on("#bArray", buildArray);
+  const q = document.querySelector("#trQual");
+  if (q) {
+    q.onchange = () => { S.trace.quality = q.value; };
+    commitNum("#trWeight", v => { S.trace.weight = clamp(v, 0.05, 12); });
+    commitNum("#trSimp", v => { S.trace.simplify = clamp(v, 0.02, 4); });
+    commitNum("#trMin", v => { const px = fromU(Math.max(0, v)); S.trace.minArea = (px * px) / (PPI * PPI); });
+    document.querySelector("#trSmooth").onchange = e => { S.trace.smooth = e.target.checked; };
+    document.querySelector("#trHoles").onchange = e => { S.trace.holes = e.target.checked; };
+    const th = document.querySelector("#trThresh");
+    if (th) {
+      th.oninput = () => { S.trace.threshold = +th.value; th.nextElementSibling.textContent = th.value; };
+      document.querySelector("#trInvert").onchange = e => { S.trace.invert = e.target.checked; };
+    }
+    document.querySelector("#trReset").onclick = () => {
+      S.trace = { quality: "normal", weight: 1, simplify: 0.32, smooth: true,
+                  minArea: 0.0004, holes: true, threshold: 158, invert: false };
+      renderInspector(); toast("Trace settings reset");
+    };
+  }
+  on("#bExport2", exportSVG);
+  on("#bSaveP", () => saveProject(false));
+  on("#bSaveAs", () => saveProject(true));
+  on("#bOpenP", showProjects);
+
+  document.querySelectorAll("[data-align]").forEach(b => b.onclick = () => alignSel(b.dataset.align));
+  document.querySelectorAll(".op").forEach(o => o.onclick = () => {
+    const k = +o.dataset.op;
+    S.editingOp = (S.activeOp === k && S.editingOp === k) ? -1 : k;
+    S.activeOp = k; renderInspector();
+  });
+  document.querySelectorAll("[data-opname]").forEach(i => i.oninput = () => { S.ops[+i.dataset.opname].name = i.value; refreshOpChips(); });
+  document.querySelectorAll("[data-opcolor]").forEach(i => i.oninput = () => { S.ops[+i.dataset.opcolor].color = i.value; refreshOpChips(); });
+  document.querySelectorAll("[data-opmode]").forEach(i => i.onchange = () => { S.ops[+i.dataset.opmode].mode = i.value; renderInspector(); });
+  document.querySelectorAll("[data-pickcolor]").forEach(r => r.onclick = () => {
+    const c = r.dataset.pickcolor;
+    const hits = objects().filter(n => n.matches(`[stroke="${c}"],[fill="${c}"]`) || n.querySelector(`[stroke="${c}"],[fill="${c}"]`));
+    select(hits); toast(`Selected ${hits.length} object${hits.length === 1 ? "" : "s"} using ${c}`);
+  });
+
+  const tb = document.querySelector("#txtBody");
+  if (tb) {
+    const t = textNodeOf(S.sel[0]);
+    tb.oninput = () => { setText(t, tb.value); drawOverlay(); syncNumbers(); };
+    tb.onblur = () => snapshot();
+    document.querySelector("#txtFont").onchange = e => { snapshot(); t.setAttribute("font-family", e.target.value); after(); };
+    document.querySelector("#txtWeight").onchange = e => { snapshot(); t.setAttribute("font-weight", e.target.value); after(); };
+    commitNum("#txtSize", v => { t.setAttribute("font-size", v / 72 * PPI); });
+    commitNum("#txtTrack", v => { t.setAttribute("letter-spacing", v); });
+    commitNum("#txtLead", v => { t.setAttribute("data-lead", v); setText(t, textOf(t)); });
+
+    const co = document.querySelector("#curveOn");
+    co.onchange = () => {
+      snapshot();
+      if (co.checked) {
+        const b = localBox(t);
+        const r = Math.max(fromU(S.unit === "in" ? 1.5 : 38), b.width / Math.PI / 1.6);
+        const g = curveText(t, r, "up", 50);
+        select(g);
+      } else {
+        const n = uncurveText(t);
+        select(n);
+      }
+      after(); renderLayers();
+    };
+    const cr = document.querySelector("#curveR");
+    if (cr) {
+      const recurve = () => {
+        const r = Math.max(1, fromU(parseFloat(document.querySelector("#curveR").value) || 1));
+        const arch = document.querySelector("#curveArch").value;
+        const off = +document.querySelector("#curveOff").value;
+        curveText(t, r, arch, off);
+        drawOverlay(); syncNumbers();
+      };
+      commitNum("#curveR", () => recurve());
+      document.querySelector("#curveArch").onchange = () => { snapshot(); recurve(); };
+      const off = document.querySelector("#curveOff");
+      off.oninput = recurve;
+      off.onchange = () => snapshot();
+    }
+  }
+
+  /* fonts */
+  const fd = document.querySelector("#fontDrop");
+  if (fd) {
+    fd.onclick = () => document.querySelector("#fontin").click();
+    ["dragenter","dragover"].forEach(ev => fd.addEventListener(ev, e => { e.preventDefault(); fd.classList.add("hot"); }));
+    ["dragleave","drop"].forEach(ev => fd.addEventListener(ev, e => { e.preventDefault(); fd.classList.remove("hot"); }));
+    fd.addEventListener("drop", e => { e.preventDefault(); [...e.dataTransfer.files].forEach(loadFontFile); });
+    document.querySelectorAll("[data-delfont]").forEach(b => b.onclick = () => {
+      removeFont(+b.dataset.delfont);
+    });
+  }
+
+  /* lasso */
+  document.querySelectorAll("[data-lmode]").forEach(b => b.onclick = () => {
+    S.lassoMode = b.dataset.lmode; renderInspector();
+  });
+  on("#bSubSplit", () => subSplit(+document.querySelector("#lassoOp").value));
+  on("#bSubDel", subDelete);
+  on("#bSubKeep", subKeepOnly);
+  on("#bSubClear", () => setSub([]));
+  document.querySelectorAll("[data-shape]").forEach(b => b.onclick = () => {
+    const k = b.dataset.shape;
+    S.shape.preset = k;
+    if (k === "tri") S.shape.sides = 3, S.shape.star = false;
+    if (k === "hex") S.shape.sides = 6, S.shape.star = false;
+    if (k === "star") S.shape.sides = 5, S.shape.star = true;
+    if (k === "round") S.shape.rx = S.shape.rx || fromU(S.unit === "in" ? 0.25 : 6);
+    if (k === "rect") S.shape.rx = 0;
+    setTool(b.dataset.shapetool);
+    applyShapeToSel();
+  });
+  const sSides = document.querySelector("#shSides");
+  if (sSides) {
+    const upd = () => { S.shape.sides = clamp(parseInt(sSides.value) || 5, 3, 60); applyShapeToSel(); };
+    sSides.oninput = upd;
+    document.querySelector("#shStar").onchange = e => { S.shape.star = e.target.checked; applyShapeToSel(); renderInspector(); };
+    const r = document.querySelector("#shRatio");
+    if (r) r.oninput = () => { S.shape.ratio = +r.value / 100; applyShapeToSel(); };
+    commitNum("#shRx", v => { S.shape.rx = Math.max(0, fromU(v)); applyShapeToSel(); });
+  }
+}
+// live-update whatever polygon or rounded rect is selected
+function applyShapeToSel() {
+  S.sel.forEach(n => {
+    const k = n.getAttribute("data-kind");
+    if (k === "poly") {
+      const d = JSON.parse(n.getAttribute("data-poly") || "null"); if (!d) return;
+      n.setAttribute("points", polyPoints(d.cx, d.cy, d.R, S.shape.sides, S.shape.star, S.shape.ratio));
+      n.setAttribute("data-sides", S.shape.sides);
+      n.setAttribute("data-star", S.shape.star ? 1 : 0);
+    } else if (k === "rect") {
+      const w = +n.getAttribute("width"), h = +n.getAttribute("height");
+      const r = clamp(S.shape.rx, 0, Math.min(w, h) / 2);
+      if (r > 0) { n.setAttribute("rx", r); n.setAttribute("ry", r); }
+      else { n.removeAttribute("rx"); n.removeAttribute("ry"); }
+    }
+  });
+  drawOverlay(); renderLayers();
+}
+function refreshOpChips() {
+  document.querySelectorAll(".op").forEach(o => {
+    const op = S.ops[+o.dataset.op];
+    o.querySelector(".sw").style.background = op.color;
+    o.querySelector(".ct").textContent = op.color.toUpperCase();
+    o.querySelector(".nm").firstChild.nodeValue = op.name;
+  });
+}
+function after() { drawOverlay(); renderInspector(); updateStatus(); }
+function randColor() {
+  const p = ["#E8112D","#0072CE","#00843D","#8A2BE2","#FF8200","#00A3AD","#C6007E","#6B4F1D"];
+  return p[S.ops.length % p.length];
+}
+
+/* ---------- numeric transforms ---------- */
+function moveTo(x, y) {
+  const b = aabbOf(S.sel);
+  applyMat(new DOMMatrix().translate(x === null ? 0 : x - b.x, y === null ? 0 : y - b.y));
+}
+function resizeTo(w, h) {
+  const b = aabbOf(S.sel), lock = document.querySelector("#lockAR")?.checked;
+  let sx = w === null ? 1 : w / b.width, sy = h === null ? 1 : h / b.height;
+  if (lock) { if (w !== null) sy = sx; else sx = sy; }
+  if (!isFinite(sx) || !isFinite(sy) || sx <= 0 || sy <= 0) return;
+  applyMat(new DOMMatrix().translate(b.x, b.y).scale(sx, sy).translate(-b.x, -b.y));
+}
+function rotateTo(deg) {
+  if (S.sel.length !== 1) return;
+  const n = S.sel[0], m = getMat(n);
+  const cur = Math.atan2(m.b, m.a) * 180 / Math.PI;
+  const b = aabbOf([n]), cx = b.x + b.width/2, cy = b.y + b.height/2;
+  applyMat(new DOMMatrix().translate(cx, cy).rotate(deg - cur).translate(-cx, -cy));
+}
+function aboutCenter(fn) {
+  if (!S.sel.length) return;
+  const b = aabbOf(S.sel);
+  const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+  snapshot();
+  applyMat(new DOMMatrix().translate(cx, cy).multiply(fn()).translate(-cx, -cy));
+  after(); syncNumbers();
+}
+const flipH = () => aboutCenter(() => new DOMMatrix().scale(-1, 1));
+const flipV = () => aboutCenter(() => new DOMMatrix().scale(1, -1));
+const rot90 = d => aboutCenter(() => new DOMMatrix().rotate(90 * d));
+
+function distributeSel(axis) {
+  if (S.sel.length < 3) { toast("Distribute needs three or more objects"); return; }
+  const items = S.sel.map(n => ({ n, b: aabbOf([n]) }));
+  const key = axis === "h" ? "x" : "y", size = axis === "h" ? "width" : "height";
+  items.sort((a, b) => a.b[key] - b.b[key]);
+  const first = items[0], last = items[items.length - 1];
+  const span = (last.b[key] + last.b[size]) - first.b[key];
+  const total = items.reduce((t, i) => t + i.b[size], 0);
+  const gap = (span - total) / (items.length - 1);
+  snapshot();
+  let cursor = first.b[key];
+  items.forEach((it, i) => {
+    if (i > 0) {
+      const d = cursor - it.b[key];
+      setMat(it.n, new DOMMatrix().translate(axis === "h" ? d : 0, axis === "h" ? 0 : d).multiply(getMat(it.n)));
+    }
+    cursor += it.b[size] + gap;
+  });
+  after();
+  toast(`Spaced evenly, ${fmtU(gap)} ${S.unit} apart`);
+}
+function snapVal(v) { return S.snap > 0 ? Math.round(v / S.snap) * S.snap : v; }
+
+function alignSel(k) {
+  if (S.sel.length < 2) {
+    const b = aabbOf(S.sel); if (!b) return;
+    snapshot();
+    const W = S.bedW*PPI, H = S.bedH*PPI;
+    const dx = k === "l" ? -b.x : k === "c" ? (W-b.width)/2 - b.x : k === "r" ? W-b.width-b.x : 0;
+    const dy = k === "t" ? -b.y : k === "m" ? (H-b.height)/2 - b.y : k === "b" ? H-b.height-b.y : 0;
+    applyMat(new DOMMatrix().translate(dx, dy)); after(); return;
+  }
+  snapshot();
+  const box = aabbOf(S.sel);
+  S.sel.forEach(n => {
+    const b = aabbOf([n]);
+    const dx = k === "l" ? box.x - b.x : k === "c" ? box.x + (box.width-b.width)/2 - b.x : k === "r" ? box.x+box.width-b.width-b.x : 0;
+    const dy = k === "t" ? box.y - b.y : k === "m" ? box.y + (box.height-b.height)/2 - b.y : k === "b" ? box.y+box.height-b.height-b.y : 0;
+    setMat(n, new DOMMatrix().translate(dx, dy).multiply(getMat(n)));
+  });
+  after();
+}
+
+/* ---------- group / duplicate / array ---------- */
+function groupSel() {
+  if (S.sel.length < 2) return;
+  snapshot();
+  const g = el("g", { "data-kind": "group" });
+  setMat(g, new DOMMatrix());
+  const host = S.sel[0].parentNode;
+  const ordered = [...host.children].filter(n => S.sel.includes(n));
+  if (ordered.length < 2) { S.undo.pop(); toast("Group the items that share a parent"); return; }
+  host.insertBefore(g, ordered[ordered.length - 1].nextSibling);
+  g.setAttribute("data-id", nextId());
+  ordered.forEach(n => reparent(n, g, null));
+  S.expanded.add(g.getAttribute("data-id"));
+  select(g); after();
+}
+function ungroupSel() {
+  const gs = S.sel.filter(n => n.tagName.toLowerCase() === "g");
+  if (!gs.length) { toast("Select a group first"); return; }
+  snapshot();
+  const out = [];
+  gs.forEach(g => {
+    const gm = getMat(g);
+    [...g.children].forEach(c => {
+      setMat(c, gm.multiply(getMat(c)));
+      if (!c.getAttribute("data-id")) c.setAttribute("data-id", nextId());
+      g.parentNode.insertBefore(c, g); out.push(c);
+    });
+    if (S.scope === g) setScope(g.parentNode);
+    g.remove();
+  });
+  select(out); after();
+}
+function duplicateSel() {
+  if (!S.sel.length) return;
+  snapshot();
+  const copies = S.sel.map(n => {
+    const c = n.cloneNode(true);
+    c.setAttribute("data-id", nextId());
+    setMat(c, new DOMMatrix().translate(12, 12).multiply(getMat(n)));
+    n.parentNode.append(c); return c;
+  });
+  select(copies); after();
+}
+function buildArray() {
+  if (!S.sel.length) return;
+  const cols = clamp(parseInt(document.querySelector("#arCols").value) || 1, 1, 60);
+  const rows = clamp(parseInt(document.querySelector("#arRows").value) || 1, 1, 60);
+  const gap = fromU(parseFloat(document.querySelector("#arGap").value) || 0);
+  if (cols * rows > 400) { toast("That's over 400 copies — trim it down"); return; }
+  snapshot();
+  const b = aabbOf(S.sel), src = S.sel.slice(), out = [...src];
+  if (src.some(n => n.parentNode !== content)) { S.undo.pop(); toast("Step out to the bed before building an array"); return; }
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (!r && !c) continue;
+    src.forEach(n => {
+      const cp = n.cloneNode(true);
+      cp.setAttribute("data-id", nextId());
+      setMat(cp, new DOMMatrix().translate(c * (b.width + gap), r * (b.height + gap)).multiply(getMat(n)));
+      n.parentNode.append(cp); out.push(cp);
+    });
+  }
+  select(out); after();
+  toast(`${cols * rows} copies placed`);
+}
+function setText(t, str) {
+  const tp = t.querySelector("textPath");
+  if (tp) {                                   // curved text is a single run
+    tp.textContent = String(str).replace(/\n/g, " ");
+    t.setAttribute("data-raw", str);
+    const opc = +t.getAttribute("data-op");
+    if (S.ops[opc]) applyOp(t, opc);
+    return;
+  }
+  const lead = +(t.getAttribute("data-lead") || 1.2), fs = +(t.getAttribute("font-size") || 48);
+  t.textContent = "";
+  const lines = String(str).split("\n");
+  if (lines.length === 1) { t.textContent = str; return; }
+  lines.forEach((ln, i) => {
+    const ts = el("tspan", { x: 0, dy: i ? fs * lead : 0, "xml:space": "preserve" });
+    ts.textContent = ln || " ";
+    t.append(ts);
+  });
+  const op = S.ops[+t.getAttribute("data-op")];
+  if (op) applyOp(t, +t.getAttribute("data-op"));
+}
+const textOf = t => t.getAttribute("data-raw") ?? t.textContent;
+
+/* ============================================================
+   Fonts — loaded from the user's own files, kept in memory
+   ============================================================ */
+const FONT_MIME = { ttf: "font/ttf", otf: "font/otf", woff: "font/woff", woff2: "font/woff2" };
+function bufToB64(buf) {
+  let bin = "";
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+async function registerFont(family, buf, meta) {
+  const face = new FontFace(family, buf);
+  await face.load();
+  document.fonts.add(face);
+  S.fonts.push({
+    family,
+    b64: meta && meta.b64 ? meta.b64 : bufToB64(buf),
+    format: (meta && meta.format) || "truetype",
+    fileName: (meta && meta.fileName) || family + ".ttf",
+    id: meta && meta.id ? meta.id : null
+  });
+  return S.fonts[S.fonts.length - 1];
+}
+async function loadFontFile(file) {
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  if (!FONT_MIME[ext]) { toast(`${file.name} isn't a font — use TTF, OTF, WOFF or WOFF2`); return; }
+  const buf = await file.arrayBuffer();
+  const family = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim() || "Custom";
+  if (S.fonts.some(f => f.family === family)) { toast(`${family} is already loaded`); return; }
+  const format = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
+  let rec;
+  try { rec = await registerFont(family, buf, { format, fileName: file.name }); }
+  catch (e) { toast(`${file.name} wouldn't parse as a font`); return; }
+  if (S.server) {
+    try {
+      const saved = await api("POST", "/fonts", { family, b64: rec.b64, format, fileName: file.name });
+      rec.id = saved.id;
+      toast(`${family} installed — it will be here next time`);
+    } catch (e) {
+      toast(e.status === 409 ? `${family} is already on the server` : `${family} loaded, but the server wouldn't save it`);
+    }
+  } else toast(`${family} is ready — this session only`);
+  renderInspector();
+}
+async function removeFont(k) {
+  const f = S.fonts[k]; if (!f) return;
+  if (S.server && f.id) { try { await api("DELETE", "/fonts/" + f.id); } catch (e) { toast("Server kept the font: " + e.message); } }
+  S.fonts.splice(k, 1);
+  renderInspector();
+}
+function fontFaceCSS() {
+  return S.fonts.map(f =>
+    `@font-face{font-family:'${f.family}';src:url(data:${FONT_MIME[f.fileName.split(".").pop().toLowerCase()]};base64,${f.b64}) format('${f.format}');}`
+  ).join("");
+}
+
+/* ============================================================
+   Import
+   ============================================================ */
+function handleFiles(files) {
+  [...files].forEach(f => {
+    if (/svg/.test(f.type) || /\.svg$/i.test(f.name)) {
+      const r = new FileReader();
+      r.onload = () => importSVG(r.result, f.name);
+      r.readAsText(f);
+    } else if (/^image\//.test(f.type)) {
+      const r = new FileReader();
+      r.onload = () => importImage(r.result, f.name);
+      r.readAsDataURL(f);
+    } else if (/\.(ttf|otf|woff2?)$/i.test(f.name)) loadFontFile(f);
+    else toast(`Can't read ${f.name} — SVG, PNG, JPG or a font file`);
+  });
+}
+
+const LEN = { px:1, "":1, pt:96/72, pc:16, mm:96/25.4, cm:96/2.54, in:96 };
+function parseLen(v) {
+  if (!v) return null;
+  const m = String(v).trim().match(/^(-?[\d.]+)\s*([a-z%]*)$/i);
+  if (!m) return null;
+  const u = (m[2] || "").toLowerCase();
+  if (u === "%" || !(u in LEN)) return null;
+  return parseFloat(m[1]) * LEN[u];
+}
+
+function importSVG(text, name) {
+  const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+  const root = doc.querySelector("svg");
+  if (!root || doc.querySelector("parsererror")) { toast(`${name} isn't valid SVG`); return; }
+
+  root.querySelectorAll("script,foreignObject").forEach(n => n.remove());
+  root.querySelectorAll("*").forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name)) n.removeAttribute(a.name); }));
+
+  const vb = (root.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+  const hasVB = vb.length === 4 && vb.every(isFinite);
+  const wAttr = parseLen(root.getAttribute("width")), hAttr = parseLen(root.getAttribute("height"));
+  let scale = 1, minX = 0, minY = 0, wPx, hPx;
+  if (hasVB) {
+    minX = vb[0]; minY = vb[1];
+    scale = wAttr ? wAttr / vb[2] : hAttr ? hAttr / vb[3] : 1;
+    wPx = vb[2] * scale; hPx = vb[3] * scale;
+  } else { wPx = wAttr || 384; hPx = hAttr || 384; }
+
+  const wrap = el("g", { "data-kind": "import", "data-name": name });
+  const gid = "imp" + (++S.idc);
+  wrap.setAttribute("id", gid);
+  // scope any embedded CSS so it can't leak into the app
+  root.querySelectorAll("style").forEach(st => { st.textContent = scopeCSS(st.textContent, "#" + gid); });
+  // move defs first so references resolve
+  [...root.childNodes].forEach(n => { if (n.nodeType === 1 || n.nodeType === 3) wrap.append(document.importNode(n, true)); });
+  [...wrap.querySelectorAll("title,desc,metadata")].forEach(n => n.remove());
+
+  const inner = el("g");
+  setMat(inner, new DOMMatrix().scale(scale).translate(-minX, -minY));
+  while (wrap.firstChild) inner.append(wrap.firstChild);
+  wrap.append(inner);
+
+  const cx = (S.bedW*PPI - wPx) / 2, cy = (S.bedH*PPI - hPx) / 2;
+  setMat(wrap, new DOMMatrix().translate(Math.max(cx, 0), Math.max(cy, 0)));
+  snapshot();
+  addObject(wrap);
+  select(wrap); after();
+  toast(`${name} placed at ${fmtU(wPx)} × ${fmtU(hPx)} ${S.unit}`);
+}
+function scopeCSS(css, prefix) {
+  return String(css).replace(/(^|\})\s*([^@{}]+)\{/g, (m, brace, sel) => {
+    const s = sel.split(",").map(x => prefix + " " + x.trim()).join(",");
+    return `${brace} ${s}{`;
+  });
+}
+function importImage(dataURL, name) {
+  const img = new Image();
+  img.onload = () => {
+    const maxW = 4 * PPI;
+    const s = Math.min(1, maxW / img.width);
+    const w = img.width * s, h = img.height * s;
+    const n = el("image", { x: 0, y: 0, width: w, height: h, "data-kind": "image", "data-name": name,
+      preserveAspectRatio: "none" });
+    n.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataURL);
+    n.setAttribute("href", dataURL);
+    setMat(n, new DOMMatrix().translate((S.bedW*PPI - w)/2, (S.bedH*PPI - h)/2));
+    snapshot(); addObject(n); select(n); after();
+    toast(`${name} placed — engraves as a bitmap, or Trace it to get cut lines`);
+  };
+  img.onerror = () => toast(`Couldn't decode ${name}`);
+  img.src = dataURL;
+}
+
+/* ============================================================
+   Storage — talks to the local server when there is one,
+   and stays fully usable as a loose file when there isn't
+   ============================================================ */
+async function api(method, path, body) {
+  const r = await fetch("/api" + path, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = null;
+  try { data = await r.json(); } catch (e) {}
+  if (!r.ok) throw Object.assign(new Error((data && data.error) || `${method} ${path} failed`), { status: r.status, data });
+  return data;
+}
+async function detectServer() {
+  try {
+    const h = await api("GET", "/health");
+    S.server = !!(h && h.ok);
+  } catch (e) { S.server = false; }
+  if (S.server) { await loadServerFonts(); await refreshProjects(); }
+  renderTitle(); renderInspector();
+}
+async function loadServerFonts() {
+  let list = [];
+  try { list = await api("GET", "/fonts"); } catch (e) { return; }
+  for (const meta of list) {
+    if (S.fonts.some(f => f.family === meta.family)) continue;
+    try {
+      const full = await api("GET", "/fonts/" + meta.id);
+      await registerFont(full.family, b64ToBuf(full.b64), full);
+    } catch (e) { console.warn("font failed to load:", meta.family, e.message); }
+  }
+  renderInspector();
+  if (list.length) toast(`${list.length} saved font${list.length === 1 ? "" : "s"} loaded`);
+}
+function b64ToBuf(b64) {
+  const bin = atob(b64), out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+async function refreshProjects() {
+  try { S.projList = await api("GET", "/projects"); } catch (e) { S.projList = []; }
+}
+function renderTitle() {
+  const t = $("#projName");
+  if (t) t.textContent = S.proj.name + (S.proj.dirty ? " •" : "");
+  const badge = $("#srvBadge");
+  if (badge) {
+    badge.textContent = S.server ? "saved on server" : "local only";
+    badge.style.color = S.server ? "var(--ok)" : "var(--dim)";
+    badge.style.borderColor = S.server ? "var(--ok)" : "var(--line)";
+  }
+  const sb = $("#btnSave"); if (sb) sb.disabled = !S.server;
+  const ob = $("#btnOpenProj"); if (ob) ob.disabled = !S.server;
+}
+function markDirty() { if (!S.proj.dirty) { S.proj.dirty = true; renderTitle(); } }
+
+async function saveProject(asNew) {
+  if (!S.server) { toast("No server — run LaserNode in its container to save projects"); return; }
+  let name = S.proj.name;
+  if (asNew || !S.proj.id || name === "Untitled") {
+    const v = prompt("Project name", name === "Untitled" ? "" : name);
+    if (v === null) return;
+    if (!v.trim()) { toast("Give it a name"); return; }
+    name = v.trim();
+  }
+  busy(true, "saving…");
+  try {
+    const rec = await api("POST", "/projects", {
+      id: asNew ? null : S.proj.id,
+      name, bedW: S.bedW, bedH: S.bedH, unit: S.unit,
+      ops: S.ops, objects: content.children.length, svg: content.innerHTML
+    });
+    S.proj = { id: rec.id, name: rec.name, dirty: false };
+    await refreshProjects();
+    renderTitle(); renderInspector();
+    toast(`Saved "${rec.name}"`);
+  } catch (e) { toast("Save failed: " + e.message); }
+  finally { busy(false); }
+}
+async function openProject(id) {
+  busy(true, "opening…");
+  try {
+    const p = await api("GET", "/projects/" + id);
+    if (p.bedW) { S.bedW = p.bedW; S.bedH = p.bedH; }
+    if (p.unit) { S.unit = p.unit; const u = $("#unitSel"); if (u) u.value = p.unit; }
+    if (Array.isArray(p.ops) && p.ops.length) S.ops = p.ops;
+    content.innerHTML = p.svg || "";
+    // keep the id counter ahead of anything restored from disk
+    content.querySelectorAll("[data-id]").forEach(n => {
+      const m = /^o(\d+)$/.exec(n.getAttribute("data-id"));
+      if (m) S.idc = Math.max(S.idc, +m[1]);
+    });
+    S.proj = { id: p.id, name: p.name, dirty: false };
+    S.scope = null; S.expanded.clear(); setSub([]); select([]);
+    sizeBed(); renderCrumb(); fitView(); after(); renderLayers(); renderTitle();
+    toast(`Opened "${p.name}"`);
+  } catch (e) { toast("Couldn't open that project: " + e.message); }
+  finally { busy(false); }
+}
+async function deleteProject(id, name) {
+  if (!confirm(`Delete "${name}"? The file is removed from the server.`)) return;
+  try {
+    await api("DELETE", "/projects/" + id);
+    if (S.proj.id === id) S.proj = { id: null, name: "Untitled", dirty: true };
+    await refreshProjects(); renderInspector(); renderTitle();
+    toast("Deleted");
+  } catch (e) { toast("Delete failed: " + e.message); }
+}
+
+/* ============================================================
+   Lasso — pick individual pieces out of an imported drawing
+   ============================================================ */
+const DRAWABLE = "path,rect,circle,ellipse,line,polyline,polygon,text,image,use";
+function leavesIn(root) {
+  const out = [];
+  root.querySelectorAll(DRAWABLE).forEach(n => {
+    if (n.closest("defs,clipPath,mask,marker,pattern")) return;
+    if (n.getAttribute("data-guide")) return;
+    if (n.tagName.toLowerCase() === "text" && n.closest("text") !== n) return;
+    if (n.closest('[data-kind="curvetext"]')) return;
+    for (let p = n; p && p !== content; p = p.parentNode) if (p.style && p.style.display === "none") return;
+    out.push(n);
+  });
+  return out;
+}
+function lassoCandidates() {
+  const pool = S.sel.length ? S.sel : allTop();
+  const out = [];
+  pool.forEach(n => {
+    const kids = leavesIn(n);
+    if (kids.length) out.push(...kids);
+    else if (n.matches(DRAWABLE)) out.push(n);
+  });
+  return [...new Set(out)];
+}
+function pointInPoly(x, y, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+// Walk the real outline. A bounding box lies about diagonals and curves — its
+// corners sit out in empty space, so box-based tests reject shapes that plainly
+// look enclosed. getPointAtLength follows the ink itself.
+function samplePoints(n) {
+  const m = docMat(n), tag = n.tagName.toLowerCase();
+  const pts = [];
+  const push = (x, y) => { const p = m.transformPoint(new DOMPoint(x, y)); pts.push([p.x, p.y]); };
+  if (["path","polyline","polygon","line"].includes(tag) && n.getTotalLength) {
+    let L = 0;
+    try { L = n.getTotalLength(); } catch (e) { L = 0; }
+    if (L > 0.01) {
+      const N = clamp(Math.round(L / 5), 12, 160);
+      for (let i = 0; i <= N; i++) {
+        try { const p = n.getPointAtLength(L * i / N); push(p.x, p.y); } catch (e) { break; }
+      }
+      if (pts.length > 2) return pts;
+    }
+  }
+  if (tag === "circle" || tag === "ellipse") {
+    const cx = +(n.getAttribute("cx") || 0), cy = +(n.getAttribute("cy") || 0);
+    const rx = +(n.getAttribute("rx") || n.getAttribute("r") || 0), ry = +(n.getAttribute("ry") || n.getAttribute("r") || 0);
+    for (let i = 0; i < 32; i++) { const a = i / 32 * Math.PI * 2; push(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry); }
+    return pts;
+  }
+  const b = localBox(n);
+  for (const fx of [0, .25, .5, .75, 1]) for (const fy of [0, .25, .5, .75, 1]) push(b.x + b.width * fx, b.y + b.height * fy);
+  return pts;
+}
+let sampleCache = new WeakMap();
+function cachedSamples(n) {
+  let v = sampleCache.get(n);
+  if (!v) { v = samplePoints(n); sampleCache.set(n, v); }
+  return v;
+}
+function lassoPick(poly, pool) {
+  if (poly.length < 3) return [];
+  const strict = S.lassoMode === "enclosed";
+  return (pool || lassoCandidates()).filter(n => {
+    const pts = cachedSamples(n);
+    if (!pts.length) return false;
+    let inside = 0;
+    for (const [x, y] of pts) if (pointInPoly(x, y, poly)) inside++;
+    // one sample grazing the edge of the loop shouldn't reject the whole shape
+    if (strict) return inside >= Math.max(pts.length - 1, pts.length * 0.98);
+    if (inside > 0) return true;
+    // a small loop drawn entirely inside a large shape still counts as touching
+    const b = aabbOf([n]);
+    return !!b && poly.every(([x, y]) => x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height);
+  });
+}
+function setSub(list) {
+  S.sub = list.filter(n => n.isConnected);
+  drawOverlay(); renderInspector();
+}
+function pruneEmpty(root) {
+  [...root.querySelectorAll("g")].reverse().forEach(g => {
+    if (g === content || g.getAttribute("data-guide")) return;
+    if (!g.querySelector(DRAWABLE)) g.remove();
+  });
+  [...content.children].forEach(n => { if (n.tagName.toLowerCase() === "g" && !n.querySelector(DRAWABLE)) n.remove(); });
+}
+function subSplit(opIdx) {
+  if (!S.sub.length) return;
+  snapshot();
+  const g = el("g", { "data-kind": "group", "data-label": `Split ${S.ops[opIdx] ? S.ops[opIdx].name : ""}`.trim() });
+  setMat(g, new DOMMatrix());
+  g.setAttribute("data-id", nextId());
+  content.append(g);
+  const moved = S.sub.slice();
+  moved.forEach(n => { if (!n.getAttribute("data-id")) n.setAttribute("data-id", nextId()); reparent(n, g, null); });
+  if (opIdx >= 0) applyOp(g, opIdx);
+  pruneEmpty(content);
+  S.expanded.add(g.getAttribute("data-id"));
+  setSub([]); setScope(null); select(g); after(); renderLayers();
+  toast(`${moved.length} piece${moved.length === 1 ? "" : "s"} split onto their own layer`);
+}
+function subDelete() {
+  if (!S.sub.length) return;
+  snapshot();
+  const n = S.sub.length;
+  S.sub.forEach(x => x.remove());
+  pruneEmpty(content);
+  setSub([]); select(S.sel.filter(x => x.isConnected)); after(); renderLayers();
+  toast(`Removed ${n} piece${n === 1 ? "" : "s"}`);
+}
+function subKeepOnly() {
+  if (!S.sub.length) return;
+  const keep = new Set(S.sub);
+  const drop = lassoCandidates().filter(n => !keep.has(n));
+  if (!drop.length) { toast("Nothing outside the lasso"); return; }
+  snapshot();
+  drop.forEach(n => n.remove());
+  pruneEmpty(content);
+  setSub([]); after(); renderLayers();
+  toast(`Kept ${keep.size}, removed ${drop.length}`);
+}
+
+/* ============================================================
+   Curved text
+   ============================================================ */
+function circlePath(r, arch) {
+  const R = Math.max(1, r);
+  // arch up: start at the bottom and travel clockwise, so the midpoint sits at the top
+  return arch === "up"
+    ? `M0,${R} a${R},${R} 0 1,1 0,${-2*R} a${R},${R} 0 1,1 0,${2*R}`
+    : `M0,${-R} a${R},${R} 0 1,0 0,${2*R} a${R},${R} 0 1,0 0,${-2*R}`;
+}
+function curveText(t, r, arch, offset) {
+  const raw = textOf(t);
+  const parent = t.parentNode;
+  let g = t.closest('[data-kind="curvetext"]');
+  let guide;
+  if (g) {
+    guide = g.querySelector("[data-guide]");
+  } else {
+    g = el("g", { "data-kind": "curvetext" });
+    g.setAttribute("data-id", nextId());
+    setMat(g, getMat(t));
+    parent.insertBefore(g, t);
+    setMat(t, new DOMMatrix());
+    guide = el("path", { "data-guide": "1", fill: "none", stroke: "none" });
+    guide.setAttribute("id", "cp" + (++S.cpId));
+    g.append(guide, t);
+  }
+  guide.setAttribute("d", circlePath(r, arch));
+  let tp = t.querySelector("textPath");
+  if (!tp) {
+    t.textContent = "";
+    tp = document.createElementNS(SVGNS, "textPath");
+    t.append(tp);
+  }
+  tp.setAttribute("href", "#" + guide.getAttribute("id"));
+  tp.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#" + guide.getAttribute("id"));
+  tp.setAttribute("startOffset", offset + "%");
+  tp.textContent = String(raw).replace(/\n/g, " ");
+  t.setAttribute("text-anchor", "middle");
+  t.setAttribute("data-raw", raw);
+  t.setAttribute("data-radius", r);
+  t.setAttribute("data-arch", arch);
+  t.setAttribute("data-offset", offset);
+  t.removeAttribute("x"); t.removeAttribute("y");
+  const opc = +t.getAttribute("data-op");
+  if (S.ops[opc]) applyOp(t, opc);
+  return g;
+}
+function uncurveText(t) {
+  const g = t.closest('[data-kind="curvetext"]');
+  const raw = textOf(t);
+  if (g) {
+    const gm = getMat(g);
+    g.parentNode.insertBefore(t, g);
+    setMat(t, gm.multiply(getMat(t)));
+    g.remove();
+  }
+  t.textContent = "";
+  t.removeAttribute("data-raw"); t.removeAttribute("data-radius");
+  t.removeAttribute("data-arch"); t.removeAttribute("data-offset");
+  t.removeAttribute("text-anchor");
+  t.setAttribute("x", 0); t.setAttribute("y", 0);
+  setText(t, raw);
+  return t;
+}
+const textNodeOf = n => !n ? null
+  : n.tagName.toLowerCase() === "text" ? n
+  : n.getAttribute("data-kind") === "curvetext" ? n.querySelector("text") : null;
+
+/* ============================================================
+   Trace engine — rasterise, signed distance field, contour
+   ============================================================ */
+async function rasterize(nodes, padPx, targetLongSide, opt) {
+  opt = opt || {};
+  const b = aabbOf(nodes);
+  if (!b || b.width <= 0 || b.height <= 0) throw new Error("Nothing with a size is selected");
+  const ox = b.x - padPx, oy = b.y - padPx;
+  const w = b.width + padPx * 2, h = b.height + padPx * 2;
+  const scale = clamp(targetLongSide / Math.max(w, h), 1, 16);
+  const cw = Math.max(8, Math.round(w * scale)), ch = Math.max(8, Math.round(h * scale));
+  if (cw * ch > 36e6) throw new Error("Selection is too large to trace at this resolution");
+
+  const isImg = nodes.length === 1 && nodes[0].tagName.toLowerCase() === "image";
+  const cv = document.createElement("canvas");
+  cv.width = cw; cv.height = ch;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+
+  const body = nodes.map(n => {
+    const c = n.cloneNode(true);
+    c.removeAttribute("data-id");
+    return new XMLSerializer().serializeToString(c);
+  }).join("");
+  const weight = Math.max(0.05, opt.weight === undefined ? 1 : opt.weight);
+  const css = isImg ? "" : `<style>${fontFaceCSS()}*{fill:#000!important;stroke:#000!important;stroke-width:${weight}px!important;stroke-opacity:1!important;fill-opacity:1!important;vector-effect:none!important;stroke-linejoin:round!important;stroke-linecap:round!important}[data-guide]{stroke:none!important;fill:none!important}</style>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${cw}" height="${ch}" viewBox="${ox} ${oy} ${w} ${h}">${css}${body}</svg>`;
+
+  if (S.fonts.length && document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+  const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  const im = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error("The browser refused to rasterise this selection"));
+    i.src = url;
+  });
+  ctx.drawImage(im, 0, 0, cw, ch);
+
+  let data;
+  try { data = ctx.getImageData(0, 0, cw, ch).data; }
+  catch (e) { throw new Error("The browser blocked reading pixels from this artwork"); }
+
+  const mask = new Uint8Array(cw * ch);
+  for (let i = 0, p = 0; i < mask.length; i++, p += 4) {
+    const a = data[p + 3];
+    if (a < 128) continue;
+    if (isImg) {
+      const lum = (data[p] * 0.299 + data[p+1] * 0.587 + data[p+2] * 0.114);
+      const th = opt.threshold === undefined ? 158 : opt.threshold;
+      mask[i] = (opt.invert ? lum > th : lum < th) ? 1 : 0;
+    } else mask[i] = 1;
+  }
+  return { mask, w: cw, h: ch, scale, ox, oy };
+}
+
+function edt1d(f, n, d, v, z) {
+  let k = 0; v[0] = 0; z[0] = -1e20; z[1] = 1e20;
+  for (let q = 1; q < n; q++) {
+    let s = ((f[q] + q*q) - (f[v[k]] + v[k]*v[k])) / (2*q - 2*v[k]);
+    while (s <= z[k]) { k--; s = ((f[q] + q*q) - (f[v[k]] + v[k]*v[k])) / (2*q - 2*v[k]); }
+    k++; v[k] = q; z[k] = s; z[k+1] = 1e20;
+  }
+  k = 0;
+  for (let q = 0; q < n; q++) { while (z[k+1] < q) k++; d[q] = (q - v[k]) * (q - v[k]) + f[v[k]]; }
+}
+function edt2d(binary, w, h) {  // squared distance to nearest 1-pixel
+  const INF = 1e20;
+  const g = new Float64Array(w * h);
+  for (let i = 0; i < w * h; i++) g[i] = binary[i] ? 0 : INF;
+  const m = Math.max(w, h);
+  const f = new Float64Array(m), d = new Float64Array(m), v = new Int32Array(m), z = new Float64Array(m + 1);
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) f[y] = g[y * w + x];
+    edt1d(f, h, d, v, z);
+    for (let y = 0; y < h; y++) g[y * w + x] = d[y];
+  }
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) f[x] = g[y * w + x];
+    edt1d(f, w, d, v, z);
+    for (let x = 0; x < w; x++) g[y * w + x] = d[x];
+  }
+  return g;
+}
+function signedField(mask, w, h) {
+  const inv = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) inv[i] = mask[i] ? 0 : 1;
+  const dOut = edt2d(mask, w, h);   // 0 inside, grows outside
+  const dIn  = edt2d(inv, w, h);    // 0 outside, grows inside
+  const f = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) f[i] = Math.sqrt(dOut[i]) - Math.sqrt(dIn[i]);
+  return f;
+}
+
+const EDGES = {
+  1:[[3,0]], 2:[[0,1]], 3:[[3,1]], 4:[[1,2]], 5:[[3,0],[1,2]], 6:[[0,2]], 7:[[3,2]],
+  8:[[2,3]], 9:[[0,2]], 10:[[0,1],[2,3]], 11:[[1,2]], 12:[[3,1]], 13:[[0,1]], 14:[[3,0]]
+};
+function marchingSquares(f, w, h, level) {
+  const segs = [];
+  const at = (x, y) => f[y * w + x];
+  const ipt = (edge, x, y, a, b, c, d) => {
+    const t = (p, q) => { const den = q - p; return Math.abs(den) < 1e-9 ? 0.5 : (level - p) / den; };
+    if (edge === 0) return [x + t(a, b), y];
+    if (edge === 1) return [x + 1, y + t(b, c)];
+    if (edge === 2) return [x + t(d, c), y + 1];
+    return [x, y + t(a, d)];
+  };
+  for (let y = 0; y < h - 1; y++) for (let x = 0; x < w - 1; x++) {
+    const a = at(x, y), b = at(x+1, y), c = at(x+1, y+1), d = at(x, y+1);
+    const idx = (a < level ? 1 : 0) | (b < level ? 2 : 0) | (c < level ? 4 : 0) | (d < level ? 8 : 0);
+    const list = EDGES[idx]; if (!list) continue;
+    for (const [e0, e1] of list) segs.push([ipt(e0, x, y, a, b, c, d), ipt(e1, x, y, a, b, c, d)]);
+  }
+  // chain segments into contours
+  const key = p => `${Math.round(p[0] * 64)}_${Math.round(p[1] * 64)}`;
+  const adj = new Map();
+  segs.forEach((s, i) => { for (const p of s) { const k = key(p); if (!adj.has(k)) adj.set(k, []); adj.get(k).push(i); } });
+  const used = new Uint8Array(segs.length);
+  const out = [];
+  for (let i = 0; i < segs.length; i++) {
+    if (used[i]) continue;
+    used[i] = 1;
+    const pts = [segs[i][0], segs[i][1]];
+    for (let dir = 0; dir < 2; dir++) {
+      let end = dir ? pts[0] : pts[pts.length - 1];
+      for (let guard = 0; guard < 400000; guard++) {
+        const cand = (adj.get(key(end)) || []).find(j => !used[j]);
+        if (cand === undefined) break;
+        used[cand] = 1;
+        const s = segs[cand];
+        const next = key(s[0]) === key(end) ? s[1] : s[0];
+        if (dir) pts.unshift(next); else pts.push(next);
+        end = next;
+      }
+    }
+    if (pts.length > 3) out.push(pts);
+  }
+  return out;
+}
+function simplify(pts, eps, forceClosed) {
+  // Douglas-Peucker on a closed ring: anchor on two opposite points first,
+  // otherwise the degenerate start==end baseline collapses the whole contour.
+  if (pts.length < 4) return pts;
+  const joined = Math.hypot(pts[0][0] - pts[pts.length-1][0], pts[0][1] - pts[pts.length-1][1]) < 1e-6;
+  if (!joined && !forceClosed) return dp(pts, eps);
+  const ring = joined ? pts.slice(0, -1) : pts.slice();
+  let far = 1, bd = -1;
+  for (let i = 1; i < ring.length; i++) {
+    const d = Math.hypot(ring[i][0] - ring[0][0], ring[i][1] - ring[0][1]);
+    if (d > bd) { bd = d; far = i; }
+  }
+  const a = dp(ring.slice(0, far + 1), eps), b = dp(ring.slice(far), eps);
+  let out = a.concat(b.slice(1));
+  // The two chains are anchored at their own endpoints, so the point where the
+  // ring was cut survives even when it sits flat on a straight run. Left in, it
+  // drags a smoothing tangent across the whole edge. Sweep it out.
+  for (let pass = 0; pass < 3 && out.length > 3; pass++) {
+    let removed = false;
+    for (let i = out.length - 1; i >= 0 && out.length > 3; i--) {
+      const p = out[i], a1 = out[(i - 1 + out.length) % out.length], b1 = out[(i + 1) % out.length];
+      const dx = b1[0] - a1[0], dy = b1[1] - a1[1];
+      const len = Math.hypot(dx, dy);
+      if (len < 1e-9) continue;
+      const d = Math.abs((p[0] - a1[0]) * dy - (p[1] - a1[1]) * dx) / len;
+      if (d < eps) { out.splice(i, 1); removed = true; }
+    }
+    if (!removed) break;
+  }
+  return out;
+}
+function dp(pts, eps) {
+  if (pts.length < 3) return pts;
+  const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
+  const stack = [[0, pts.length - 1]];
+  while (stack.length) {
+    const [i, j] = stack.pop();
+    let best = -1, bd = eps;
+    const [x1, y1] = pts[i], [x2, y2] = pts[j];
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+    for (let k = i + 1; k < j; k++) {
+      const d = Math.abs((pts[k][0] - x1) * dy - (pts[k][1] - y1) * dx) / len;
+      if (d > bd) { bd = d; best = k; }
+    }
+    if (best > 0) { keep[best] = 1; stack.push([i, best], [best, j]); }
+  }
+  return pts.filter((_, k) => keep[k]);
+}
+function polyArea(pts) {
+  let a = 0;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++)
+    a += (pts[j][0] * pts[i][1]) - (pts[i][0] * pts[j][1]);
+  return a / 2;
+}
+function contains(outer, pt) { return pointInPoly(pt[0], pt[1], outer); }
+
+// Catmull-Rom through the points, converted to cubic Béziers, with sharp
+// corners detected and left sharp. Turns a stair-stepped raster trace into
+// something that reads as a drawn curve instead of a polygon.
+function smoothClosed(pts, cornerDeg) {
+  const n = pts.length;
+  if (n < 4) return null;
+  // dot of the two unit edge vectors is cos(turn angle): 1 is straight, 0 is a
+  // right angle. Anything turning harder than cornerDeg is treated as a corner.
+  const lim = Math.cos(cornerDeg * Math.PI / 180);
+  const at = i => pts[(i % n + n) % n];
+  const corner = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const a = at(i - 1), b = at(i), c = at(i + 1);
+    const v1 = [b[0]-a[0], b[1]-a[1]], v2 = [c[0]-b[0], c[1]-b[1]];
+    const l1 = Math.hypot(v1[0], v1[1]) || 1, l2 = Math.hypot(v2[0], v2[1]) || 1;
+    const dot = (v1[0]*v2[0] + v1[1]*v2[1]) / (l1 * l2);
+    corner[i] = dot < lim;
+  }
+  const tan = i => {
+    if (corner[i]) return [0, 0];
+    const a = at(i - 1), c = at(i + 1);
+    return [(c[0]-a[0]) / 6, (c[1]-a[1]) / 6];
+  };
+  let d = `M${pts[0][0].toFixed(3)},${pts[0][1].toFixed(3)}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = at(i), p1 = at(i + 1);
+    const t0 = tan(i), t1 = tan(i + 1);
+    if (corner[i] && corner[(i+1) % n]) {
+      d += `L${p1[0].toFixed(3)},${p1[1].toFixed(3)}`;
+    } else {
+      const c1 = [p0[0] + t0[0], p0[1] + t0[1]];
+      const c2 = [p1[0] - t1[0], p1[1] - t1[1]];
+      d += `C${c1[0].toFixed(3)},${c1[1].toFixed(3)} ${c2[0].toFixed(3)},${c2[1].toFixed(3)} ${p1[0].toFixed(3)},${p1[1].toFixed(3)}`;
+    }
+  }
+  return d + "Z";
+}
+function contoursToPath(cs, ox, oy, scale, opt) {
+  opt = opt || {};
+  const eps = opt.simplify === undefined ? 0.32 : opt.simplify;
+  const minArea = (opt.minArea || 0) * scale * scale;   // doc units² -> raster px²
+  let rings = [];
+  for (let c of cs) {
+    c = simplify(c, eps, true);   // marching squares always yields closed rings
+    if (c.length > 2 && Math.hypot(c[0][0]-c[c.length-1][0], c[0][1]-c[c.length-1][1]) < 1e-6) c = c.slice(0, -1);
+    if (c.length < 3) continue;
+    const area = Math.abs(polyArea(c));
+    if (minArea > 0 && area < minArea) continue;         // drop specks
+    rings.push({ pts: c, area });
+  }
+  if (!rings.length) return { d: "", count: 0, dropped: cs.length };
+  if (opt.dropHoles) {
+    const big = rings.slice().sort((a, b) => b.area - a.area);
+    rings = rings.filter(r => {
+      let depth = 0;
+      for (const o of big) if (o !== r && o.area > r.area && contains(o.pts, r.pts[0])) depth++;
+      return depth % 2 === 0;                            // odd nesting means it's a hole
+    });
+  }
+  const toDoc = p => [ox + (p[0] + 0.5) / scale, oy + (p[1] + 0.5) / scale];
+  const parts = rings.map(r => {
+    const pts = r.pts.map(toDoc);
+    if (opt.smooth) {
+      const d = smoothClosed(pts, opt.cornerDeg || 62);
+      if (d) return d;
+    }
+    return pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(3)},${y.toFixed(3)}`).join("") + "Z";
+  });
+  return { d: parts.join(""), count: rings.length, dropped: cs.length - rings.length };
+}
+
+async function runTrace(sign) {
+  if (!S.sel.length) return;
+  const raw = parseFloat(document.querySelector("#trDist").value) || 0;
+  const dist = sign === 0 ? 0 : Math.abs(fromU(raw)) * sign;
+  const opIdx = +document.querySelector("#trOp").value;
+  const replace = document.querySelector("#trReplace").checked;
+  const nodes = S.sel.slice();
+  const T = S.trace;
+  const QUAL = { draft: 1200, normal: 2600, fine: 4200, max: 6400 };
+  busy(true, sign === 0 ? "tracing…" : "building outline…");
+  await new Promise(r => setTimeout(r, 20));
+  try {
+    const pad = Math.max(6, Math.abs(dist) + T.weight + 6);
+    const target = QUAL[T.quality] || 2600;
+    const { mask, w, h, scale, ox, oy } = await rasterize(nodes, pad, target,
+      { weight: T.weight, threshold: T.threshold, invert: T.invert });
+    let any = false;
+    for (let i = 0; i < mask.length; i++) if (mask[i]) { any = true; break; }
+    if (!any) throw new Error(S.trace.invert
+      ? "Nothing above the threshold — lower it, or turn off Invert"
+      : "Nothing solid to trace — try a filled shape, or raise the threshold for a light image");
+    const field = signedField(mask, w, h);
+    const cs = marchingSquares(field, w, h, dist * scale);
+    if (!cs.length) throw new Error(sign < 0 ? "Inset is larger than the shape" : "Nothing to outline");
+    const res = contoursToPath(cs, ox, oy, scale, {
+      simplify: T.simplify, smooth: T.smooth, minArea: T.minArea,
+      dropHoles: !T.holes, cornerDeg: 62
+    });
+    if (!res.d) throw new Error("Everything fell below the speck filter — lower Min size");
+    snapshot();
+    const p = el("path", { d: res.d, "data-kind": sign === 0 ? "traced" : "outline", "fill-rule": "evenodd" });
+    p.setAttribute("data-label", sign === 0 ? "Traced" : sign > 0 ? "Outline" : "Inset");
+    setMat(p, new DOMMatrix());
+    addObject(p, { op: opIdx });
+    if (replace) nodes.forEach(n => n.remove());
+    select(p); after(); renderLayers();
+    const dropped = res.dropped ? `, ${res.dropped} dropped` : "";
+    toast(sign === 0
+      ? `Traced — ${res.count} contour${res.count === 1 ? "" : "s"}${dropped}`
+      : `${sign > 0 ? "Outline" : "Inset"} at ${raw} ${S.unit} — ${res.count} contour${res.count === 1 ? "" : "s"}${dropped}`);
+  } catch (err) {
+    toast(err.message || "Trace failed");
+  } finally { busy(false); }
+}
+
+/* ============================================================
+   Export
+   ============================================================ */
+function exportSVG() {
+  if (!content.children.length) { toast("Bed is empty — nothing to export"); return; }
+  const full = document.querySelector("#exFull")?.checked ?? true;
+  const hair = document.querySelector("#exHair")?.checked ?? true;
+  const clone = content.cloneNode(true);
+  clone.removeAttribute("id");
+  [...clone.querySelectorAll("*")].forEach(n => { if (n.style && n.style.display === "none") n.remove(); });
+  clone.querySelectorAll("*").forEach(n => {
+    [...n.attributes].forEach(a => { if (/^data-/.test(a.name)) n.removeAttribute(a.name); });
+    n.removeAttribute("vector-effect");
+    if (hair && n.getAttribute("stroke") && n.getAttribute("stroke") !== "none") n.setAttribute("stroke-width", 0.96);
+  });
+  clone.removeAttribute("data-id");
+
+  let vbx = 0, vby = 0, vbw = S.bedW * PPI, vbh = S.bedH * PPI;
+  if (!full) {
+    const b = aabbOf(objects());
+    if (b) { vbx = b.x - 2; vby = b.y - 2; vbw = b.width + 4; vbh = b.height + 4; }
+  }
+  const wIn = (vbw / PPI).toFixed(4), hIn = (vbh / PPI).toFixed(4);
+  const usesCustom = S.fonts.some(f => clone.querySelector(`[font-family*="${f.family}"]`));
+  const fontCSS = usesCustom ? `<defs><style type="text/css"><![CDATA[${fontFaceCSS()}]]></style></defs>` : "";
+  const body = fontCSS + new XMLSerializer().serializeToString(clone);
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<!-- LaserNode export · ${wIn} x ${hIn} in · 96 units per inch -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${wIn}in" height="${hIn}in" viewBox="${vbx.toFixed(2)} ${vby.toFixed(2)} ${vbw.toFixed(2)} ${vbh.toFixed(2)}">
+${body}
+</svg>`;
+  const blob = new Blob([svg], { type: "image/svg+xml" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `lasernode-${new Date().toISOString().slice(0, 10)}.svg`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  const ops = [...usedColors().keys()];
+  toast(`Exported ${wIn} × ${hIn} in · ${ops.length} colour${ops.length === 1 ? "" : "s"} = ${ops.length} step${ops.length === 1 ? "" : "s"} in the Glowforge app`, 4200);
+}
+
+/* ============================================================
+   Chrome wiring + keyboard
+   ============================================================ */
+let spaceDown = false;
+document.querySelectorAll(".tool").forEach(b => b.onclick = () => setTool(b.dataset.tool));
+$("#btnOpen").onclick = () => $("#filein").click();
+$("#filein").onchange = e => { handleFiles(e.target.files); e.target.value = ""; };
+$("#fontin").onchange = e => { [...e.target.files].forEach(loadFontFile); e.target.value = ""; };
+$("#btnNew").onclick = () => {
+  if (content.children.length && !confirm("Clear the bed? This can't be undone with Ctrl+Z.")) return;
+  content.textContent = ""; S.undo.length = 0; S.redo.length = 0;
+  S.proj = { id: null, name: "Untitled", dirty: false }; renderTitle();
+  S.scope = null; S.expanded.clear(); setSub([]); renderCrumb(); select([]); after(); renderLayers();
+};
+$("#btnSave").onclick = () => saveProject(false);
+$("#btnOpenProj").onclick = showProjects;
+$("#mClose").onclick = () => $("#modal").classList.remove("on");
+$("#modal").onclick = e => { if (e.target === $("#modal")) $("#modal").classList.remove("on"); };
+async function showProjects() {
+  await refreshProjects();
+  const box = $("#projRows");
+  box.innerHTML = S.projList.length ? S.projList.map(p => `
+    <div class="prow" data-open="${p.id}">
+      <span class="pn">${esc(p.name)}<em>${p.objects} object${p.objects === 1 ? "" : "s"} · ${new Date(p.updated).toLocaleString()}</em></span>
+      <button class="del" data-del="${p.id}" data-name="${esc(p.name)}" title="Delete">✕</button>
+    </div>`).join("")
+    : `<p class="empty" style="padding:10px 4px">No saved projects yet. Build something and hit Save.</p>`;
+  box.querySelectorAll("[data-open]").forEach(r => r.onclick = e => {
+    if (e.target.closest("[data-del]")) return;
+    if (S.proj.dirty && !confirm("You have unsaved changes. Open anyway?")) return;
+    $("#modal").classList.remove("on");
+    openProject(r.dataset.open);
+  });
+  box.querySelectorAll("[data-del]").forEach(b => b.onclick = async e => {
+    e.stopPropagation();
+    await deleteProject(b.dataset.del, b.dataset.name);
+    showProjects();
+  });
+  $("#modal").classList.add("on");
+}
+$("#btnUndo").onclick = undo;
+$("#btnRedo").onclick = redo;
+$("#btnFit").onclick = fitView;
+$("#btnExport").onclick = exportSVG;
+$("#snapSel").onchange = e => {
+  const v = parseFloat(e.target.value) || 0;
+  S.snap = v > 0 ? (S.unit === "in" ? v * PPI : v * PPI) : 0;
+  toast(v > 0 ? `Snapping to ${S.unit === "in" ? v + '"' : (v * MM).toFixed(1) + " mm"} — hold Alt to override` : "Snap off");
+};
+function rebuildSnapOptions() {
+  const sel = $("#snapSel"); if (!sel) return;
+  const cur = sel.value;
+  const opts = S.unit === "in"
+    ? [["0","off"],["0.0625",'1/16"'],["0.125",'1/8"'],["0.25",'1/4"'],["0.5",'1/2"'],["1",'1"']]
+    : [["0","off"],["0.0393701","1 mm"],["0.0787402","2 mm"],["0.1968504","5 mm"],["0.3937008","10 mm"],["0.9842520","25 mm"]];
+  sel.innerHTML = opts.map(([v,l]) => `<option value="${v}">${l}</option>`).join("");
+  sel.value = opts.some(o => o[0] === cur) ? cur : "0";
+  S.snap = (parseFloat(sel.value) || 0) * PPI;
+}
+$("#unitSel").onchange = e => { S.unit = e.target.value; sizeBed(); applyView(); renderInspector(); };
+$("#bedSel").onchange = e => {
+  const v = e.target.value;
+  if (v === "custom") {
+    const s = prompt(`Bed size in ${S.unit}, as "width x height"`,
+      S.unit === "in" ? `${S.bedW} x ${S.bedH}` : `${(S.bedW*MM).toFixed(0)} x ${(S.bedH*MM).toFixed(0)}`);
+    if (!s) return;
+    const p = s.split(/[x\u00d7,]/).map(t => parseFloat(t));
+    if (p.length !== 2 || !p.every(isFinite) || p.some(n => n <= 0)) { toast("Couldn't read that size"); return; }
+    S.bedW = S.unit === "in" ? p[0] : p[0] / MM;
+    S.bedH = S.unit === "in" ? p[1] : p[1] / MM;
+  } else { const p = v.split("x"); S.bedW = +p[0]; S.bedH = +p[1]; }
+  sizeBed(); fitView(); updateStatus();
+};
+
+["dragenter", "dragover"].forEach(ev => viewport.addEventListener(ev, e => {
+  e.preventDefault(); $("#dropveil").classList.add("on");
+}));
+["dragleave", "drop"].forEach(ev => viewport.addEventListener(ev, e => {
+  e.preventDefault(); if (ev === "drop" || !viewport.contains(e.relatedTarget)) $("#dropveil").classList.remove("on");
+}));
+viewport.addEventListener("drop", e => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+
+addEventListener("keydown", e => {
+  const t = e.target.tagName;
+  const typing = t === "INPUT" || t === "TEXTAREA" || t === "SELECT";
+  if (e.code === "Space" && !typing) { spaceDown = true; viewport.classList.add("panning"); e.preventDefault(); }
+  if (typing) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); saveProject(e.shiftKey); }
+    return;
+  }
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); saveProject(e.shiftKey); return; }
+  if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
+  if (mod && e.key.toLowerCase() === "a") { e.preventDefault(); selectAll(); return; }
+  if (mod && e.key.toLowerCase() === "d") { e.preventDefault(); duplicateSel(); return; }
+  if (mod && e.key.toLowerCase() === "g") { e.preventDefault(); e.shiftKey ? ungroupSel() : groupSel(); return; }
+  if (mod && e.key === "0") { e.preventDefault(); fitView(); return; }
+  if (mod) return;
+  if (e.key === "Escape") {
+    if (S.sub.length) { setSub([]); return; }
+    if (S.scope) { setScope(S.scope.parentNode === content ? null : S.scope.parentNode); select([]); renderLayers(); drawOverlay(); return; }
+    select([]); setTool("select"); return;
+  }
+  if (e.key === "Delete" || e.key === "Backspace") {
+    if (S.sub.length) { e.preventDefault(); subDelete(); return; }
+    if (!S.sel.length) return;
+    e.preventDefault(); snapshot(); S.sel.forEach(n => n.remove()); select([]); after(); return;
+  }
+  if (e.shiftKey && S.sel.length && (e.key === "H" || e.key === "V")) {
+    e.preventDefault(); e.key === "H" ? flipH() : flipV(); return;
+  }
+  if (e.key === "[" || e.key === "]") { if (S.sel.length) { e.preventDefault(); rot90(e.key === "]" ? 1 : -1); } return; }
+  if (e.key.startsWith("Arrow") && S.sel.length) {
+    e.preventDefault();
+    const step = S.snap > 0 && !e.altKey ? S.snap
+      : fromU(S.unit === "in" ? (e.shiftKey ? 0.1 : 0.01) : (e.shiftKey ? 2 : 0.5));
+    const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    snapshot(); applyMat(new DOMMatrix().translate(d[0], d[1]));
+    drawOverlay(); syncNumbers(); updateStatus(); return;
+  }
+  const map = { v: "select", t: "text", r: "rect", e: "ellipse", l: "line", p: "poly", h: "pan", a: "lasso" };
+  if (map[e.key.toLowerCase()]) setTool(map[e.key.toLowerCase()]);
+});
+addEventListener("keyup", e => {
+  if (e.code === "Space") { spaceDown = false; viewport.classList.remove("panning"); }
+});
+// drag the divider between the layer list and the inspector
+(() => {
+  const sp = $("#splitter"); if (!sp) return;
+  let dragging = false;
+  sp.addEventListener("pointerdown", e => { dragging = true; sp.setPointerCapture(e.pointerId); e.preventDefault(); });
+  sp.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const r = $("#right").getBoundingClientRect();
+    const pct = clamp((e.clientY - r.top) / r.height * 100, 12, 80);
+    document.documentElement.style.setProperty("--layh", pct + "%");
+  });
+  sp.addEventListener("pointerup", () => { dragging = false; });
+})();
+
+addEventListener("resize", resizeStage);
+
+/* ---------- go ---------- */
+buildStage();
+renderCrumb();
+resizeStage();
+fitView();
+renderInspector();
+updateStatus();
+$("#btnUndo").disabled = true;
+$("#btnRedo").disabled = true;
+detectServer();
+addEventListener("beforeunload", e => { if (S.proj.dirty && content.children.length) { e.preventDefault(); e.returnValue = ""; } });
+setTimeout(() => toast("Drop an SVG on the bed, or draw something. Colours become Glowforge steps.", 4500), 500);
+
+</script>
+</body>
+</html>

@@ -56,7 +56,7 @@ function renderCard(item, kind) {
   if (item.link) {
     const linkEl = document.createElement("span");
     linkEl.className = "card-link";
-    linkEl.textContent = kind === "app" ? "Try it →" : "View source →";
+    linkEl.textContent = item.linkLabel || (kind === "app" ? "Try it →" : "View source →");
     body.appendChild(linkEl);
   }
 

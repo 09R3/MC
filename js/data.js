@@ -2,6 +2,8 @@
  * Add your projects and web apps here.
  * `image` should point to a file in the /photos folder (or leave blank for a placeholder).
  * `link` is optional — omit it if there's nothing to click through to yet.
+ * `linkLabel` is optional — overrides the default "View source →" / "Try it →" text,
+ * useful when a project links to a live page rather than a repo.
  */
 
 const PROJECTS = [
@@ -10,6 +12,14 @@ const PROJECTS = [
     description: "A collection of simple, clean SVG line icons that use currentColor so they theme automatically.",
     tags: ["SVG", "Icons"],
     link: "https://github.com/09R3/Marv-s-site",
+  },
+  {
+    title: "The Console Archive",
+    description: "A field guide to 34 game consoles from 1972 to now — specs, rivalries, top-ten games, and how the hardware evolved.",
+    tags: ["Reference", "Interactive"],
+    image: "projects/console-archive/screenshot.jpeg",
+    link: "projects/console-archive/",
+    linkLabel: "Explore →",
   },
   // {
   //   title: "Project Name",
@@ -34,6 +44,13 @@ const WEB_APPS = [
     tags: ["React", "PWA"],
     image: "apps/farkle/IMG_2239.jpeg",
     link: "apps/farkle/",
+  },
+  {
+    title: "LaserNode",
+    description: "A laser job prep tool: draw, import, and trace artwork, assign cut/score/engrave operations, and export ready-to-cut SVGs.",
+    tags: ["SVG", "Tool"],
+    image: "apps/lasernode/screenshot.jpeg",
+    link: "apps/lasernode/",
   },
 ];
 
