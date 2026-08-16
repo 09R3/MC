@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Console Archive — 1972 to now</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDEAE3; --ink:#16181C; --panel:#FCFBF8; --muted:#6E6E68;
+  --rule:#16181C; --soft:#D9D5CB;
+  --g1:#8A7355; --g2:#E0761E; --g3:#D62828; --g4:#8E44AD; --g5:#2980B9;
+  --g6:#12A594; --g7:#5CB338; --g8:#0F4C81; --g9:#FF3C28; --g9b:#0AB9E6;
+  --shadow:4px 4px 0 var(--ink);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{animation:none!important;transition:none!important}}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+h1,h2,h3,h4{font-family:Archivo,sans-serif;font-weight:900;letter-spacing:-.02em;margin:0;line-height:1.02}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--g5);outline-offset:3px}
+
+/* ---------- HERO ---------- */
+.hero{border-bottom:3px solid var(--rule);padding:64px 0 40px;position:relative;overflow:hidden}
+.eyebrow{font-family:Silkscreen,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(44px,10.5vw,124px);text-transform:uppercase;margin:14px 0 0}
+.hero .yrs{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:6px;
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(15px,2.6vw,26px);font-weight:600;letter-spacing:.06em}
+.hero .yrs span:nth-child(2){flex:1;min-width:40px;height:3px;background:var(--ink);align-self:center}
+.lede{max-width:56ch;margin-top:22px;font-size:17px}
+.lede em{font-style:italic;color:var(--muted)}
+.statbar{display:flex;flex-wrap:wrap;gap:0;margin-top:34px;border:3px solid var(--rule);background:var(--panel)}
+.statbar div{flex:1 1 130px;padding:14px 16px;border-right:1px solid var(--soft)}
+.statbar div:last-child{border-right:0}
+.statbar b{display:block;font-family:"IBM Plex Mono",monospace;font-size:23px;font-weight:600}
+.statbar small{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- NAV ---------- */
+.nav{position:sticky;top:0;z-index:60;background:var(--paper);border-bottom:3px solid var(--rule)}
+.nav .wrap{display:flex;gap:8px;align-items:center;padding:9px 20px;overflow-x:auto;scrollbar-width:thin}
+.chip{flex:0 0 auto;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+  padding:6px 11px;border:2px solid var(--rule);background:var(--panel);cursor:pointer;
+  text-decoration:none;white-space:nowrap;letter-spacing:.04em}
+.chip:hover{background:var(--ink);color:var(--paper)}
+.chip[data-on="1"]{background:var(--ink);color:var(--paper)}
+.chip .dot{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.35)}
+.navlabel{flex:0 0 auto;font-family:Silkscreen,monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;padding-right:2px}
+
+/* ---------- FILTERS ---------- */
+.filters{padding:20px 0 6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin-left:auto}
+
+/* ---------- GEN BAND ---------- */
+.gen{margin-top:52px;scroll-margin-top:64px}
+.genband{border:3px solid var(--rule);box-shadow:var(--shadow);display:flex;flex-wrap:wrap;align-items:stretch}
+.genband .num{background:var(--gc);color:#fff;font-family:Archivo,sans-serif;font-weight:900;
+  font-size:44px;padding:16px 22px;min-width:112px;display:flex;align-items:center;justify-content:center;
+  text-shadow:0 1px 0 rgba(0,0,0,.28)}
+.genband .meta{flex:1 1 320px;background:var(--panel);padding:15px 20px;border-left:3px solid var(--rule)}
+.genband h2{font-size:clamp(20px,3.2vw,29px);text-transform:uppercase}
+.genband .span{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);letter-spacing:.08em}
+.genband p{margin:7px 0 0;font-size:15px;max-width:70ch}
+
+/* ---------- CONSOLE CARD ---------- */
+.card{border:3px solid var(--rule);background:var(--panel);margin-top:22px;box-shadow:var(--shadow);scroll-margin-top:70px}
+.card.hide{display:none}
+.top{display:grid;grid-template-columns:300px 1fr;gap:0}
+.shots{border-right:3px solid var(--rule);background:#fff}
+.shot{position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;padding:14px;
+  background:
+    linear-gradient(var(--soft) 1px,transparent 1px) 0 0/100% 22px,
+    linear-gradient(90deg,var(--soft) 1px,transparent 1px) 0 0/22px 100%, #fff;
+  overflow:hidden}
+.shot+.shot{border-top:3px solid var(--rule)}
+.shot img{max-width:100%;max-height:100%;object-fit:contain;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.16));opacity:0;transition:opacity .4s}
+.shot img.in{opacity:1}
+.shot .tag{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--paper);
+  font-family:Silkscreen,monospace;font-size:9px;letter-spacing:.1em;padding:4px 8px}
+.shot .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:6px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);text-align:center;padding:20px}
+.shot .ph b{font-size:26px;opacity:.25}
+
+.body{padding:20px 22px 22px;min-width:0}
+.badge{display:inline-block;background:var(--gc);color:#fff;font-family:Silkscreen,monospace;
+  font-size:9px;letter-spacing:.1em;padding:4px 8px;margin-bottom:9px}
+.card h3{font-size:clamp(22px,3.5vw,32px);text-transform:uppercase;line-height:.98}
+.aka{font-family:"IBM Plex Sans";font-style:italic;color:var(--muted);font-size:14px;margin-top:4px}
+.dates{display:flex;flex-wrap:wrap;gap:0;margin:14px 0;border:2px solid var(--rule)}
+.dates div{flex:1 1 128px;padding:8px 11px;border-right:1px solid var(--soft)}
+.dates div:last-child{border-right:0}
+.dates b{display:block;font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:600}
+.dates small{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.story{font-size:15px;margin:0 0 14px}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--rule);margin-bottom:16px}
+.notes section{padding:11px 13px}
+.notes section+section{border-left:2px solid var(--rule)}
+.notes h4{font-family:Silkscreen,monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);margin-bottom:5px;font-weight:400}
+.notes p{margin:0;font-size:13.5px;line-height:1.5}
+
+/* spec plate — the signature element */
+.plate{border:2px solid var(--rule);background:
+  repeating-linear-gradient(135deg,#F4F2EC 0 6px,#EFEDE6 6px 12px);
+  font-family:"IBM Plex Mono",monospace;font-size:12px}
+.plate .ph{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--paper);
+  padding:5px 11px;font-size:9.5px;letter-spacing:.16em}
+.plate dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:0}
+.plate dt{padding:5px 11px;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px dotted var(--soft);white-space:nowrap}
+.plate dd{margin:0;padding:5px 11px;border-bottom:1px dotted var(--soft);font-weight:500;
+  overflow-wrap:anywhere}
+.plate dt:last-of-type,.plate dd:last-of-type{border-bottom:0}
+
+/* ---------- TOP TEN ---------- */
+.toggle{width:100%;border:0;border-top:3px solid var(--rule);background:var(--ink);color:var(--paper);
+  font-family:Archivo,sans-serif;font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  padding:12px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;text-align:left}
+.toggle:hover{background:var(--gc)}
+.toggle .arw{font-family:"IBM Plex Mono",monospace;transition:transform .25s}
+.card.open .toggle .arw{transform:rotate(90deg)}
+.games{display:none;border-top:3px solid var(--rule);padding:6px 0 4px}
+.card.open .games{display:block}
+.games ol{list-style:none;margin:0;padding:0;columns:2;column-gap:0}
+.games li{break-inside:avoid;display:flex;gap:11px;padding:9px 20px;border-bottom:1px dotted var(--soft);align-items:baseline}
+.games li .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#fff;background:var(--gc);
+  min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:600}
+.games li .t{font-weight:600;font-size:14.5px}
+.games li .y{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+.games li .d{display:block;font-size:12.5px;color:var(--muted);line-height:1.45}
+
+/* ---------- EVOLUTION ---------- */
+.evo{margin-top:74px;padding-top:34px;border-top:3px solid var(--rule)}
+.evo h2{font-size:clamp(26px,5.5vw,52px);text-transform:uppercase}
+.evo .sub{max-width:60ch;margin-top:10px;color:var(--muted);font-size:15px}
+.strip{display:flex;gap:0;overflow-x:auto;border:3px solid var(--rule);margin-top:22px;background:var(--panel);
+  scroll-snap-type:x proximity}
+.strip::-webkit-scrollbar{height:11px}
+.strip::-webkit-scrollbar-thumb{background:var(--ink)}
+.cellx{flex:0 0 168px;border-right:2px solid var(--rule);scroll-snap-align:start;cursor:pointer;
+  background:none;padding:0;font:inherit;text-align:left;color:inherit;display:block}
+.cellx:last-child{border-right:0}
+.cellx:hover .frame{background:#fff}
+.cellx .bar{height:7px;background:var(--gc)}
+.cellx .frame{height:132px;display:flex;align-items:center;justify-content:center;padding:11px;
+  background:linear-gradient(var(--soft) 1px,transparent 1px) 0 0/100% 18px,#fff;transition:background .2s}
+.cellx .frame img{max-width:100%;max-height:100%;object-fit:contain;opacity:0;transition:opacity .4s;
+  filter:drop-shadow(0 4px 7px rgba(0,0,0,.16))}
+.cellx .frame img.in{opacity:1}
+.cellx .cap{padding:9px 11px;border-top:2px solid var(--rule)}
+.cellx .cap .yr{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--gc)}
+.cellx .cap .nm{font-family:Archivo,sans-serif;font-weight:700;font-size:12.5px;line-height:1.2;text-transform:uppercase}
+.hint{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-top:9px}
+
+/* button-count chart */
+.chart{border:3px solid var(--rule);background:var(--panel);margin-top:26px;box-shadow:var(--shadow)}
+.chart .ch{background:var(--ink);color:var(--paper);padding:11px 16px}
+.chart .ch h3{font-size:16px;text-transform:uppercase;letter-spacing:.03em}
+.chart .ch p{margin:3px 0 0;font-size:12px;color:#B9B6AE;font-family:"IBM Plex Mono",monospace}
+.rows{padding:14px 16px}
+.row{display:grid;grid-template-columns:150px 1fr 34px;gap:11px;align-items:center;padding:3px 0}
+.row .lb{font-size:12.5px;font-weight:600;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .tr{background:var(--soft);height:15px;position:relative}
+.row .fl{height:100%;background:var(--gc);width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.row .vl{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600}
+
+footer{margin-top:72px;border-top:3px solid var(--rule);padding:26px 0 60px;font-size:13px;color:var(--muted)}
+footer b{color:var(--ink)}
+
+@media (max-width:820px){
+  .top{grid-template-columns:1fr}
+  .shots{border-right:0;border-bottom:3px solid var(--rule);display:grid;grid-template-columns:1fr 1fr}
+  .shot+.shot{border-top:0;border-left:3px solid var(--rule)}
+  .games ol{columns:1}
+  .notes{grid-template-columns:1fr}
+  .notes section+section{border-left:0;border-top:2px solid var(--rule)}
+  .row{grid-template-columns:104px 1fr 30px}
+  .row .lb{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">A field guide to the machines</div>
+    <h1>The Console<br>Archive</h1>
+    <div class="yrs"><span>1972</span><span></span><span>2025</span></div>
+    <p class="lede">Thirty-four machines that taught the world to play. Every one of them started as a
+      gamble &mdash; a company betting that people would put a strange plastic box under the television.
+      <em>Most of those bets lost.</em></p>
+    <div class="statbar" id="statbar"></div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Jump to generation">
+  <div class="wrap" id="gennav"><span class="navlabel">JUMP TO</span></div>
+</nav>
+
+<main class="wrap">
+  <div class="filters" id="filters" role="group" aria-label="Filter consoles">
+    <span class="navlabel">FILTER</span>
+  </div>
+  <div id="gens"></div>
+
+  <section class="evo" id="evo-consoles">
+    <div class="eyebrow">Part two &mdash; the shapes</div>
+    <h2>How the box changed</h2>
+    <p class="sub">Scroll sideways and watch the console turn from a wood-grain slab into a black
+      monolith, then into something you can put in a backpack. Tap any machine to jump to its page.</p>
+    <div class="strip" id="strip-consoles"></div>
+    <p class="hint">&larr; drag or scroll sideways &rarr;</p>
+  </section>
+
+  <section class="evo" id="evo-controllers">
+    <div class="eyebrow">Part three &mdash; the hands</div>
+    <h2>How the controller changed</h2>
+    <p class="sub">This is the part most people never notice. One button became two, then four, then
+      two thumbsticks, motion sensors, and a speaker in your palm. The shape of your hands is the one
+      thing every console designer has had to solve from scratch.</p>
+    <div class="strip" id="strip-pads"></div>
+    <p class="hint">&larr; drag or scroll sideways &rarr;</p>
+
+    <div class="chart">
+      <div class="ch">
+        <h3>Buttons on the standard controller</h3>
+        <p>D-pad directions not counted &mdash; face, shoulder and system buttons only</p>
+      </div>
+      <div class="rows" id="btnchart"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p><b>Photographs</b> load from Wikimedia Commons. Most are by Evan Amos, who has spent fifteen
+  years photographing every console ever made and releasing the pictures into the public domain.
+  If a frame is empty, that machine's photo could not be matched &mdash; the caption still tells you what belongs there.</p>
+  <p><b>Sales figures</b> are lifetime units shipped, from manufacturer reports where available and
+  industry estimates otherwise. Current-generation numbers are as of mid-2026 and still climbing.
+  Game covers are left out on purpose: that art is still owned by its publishers.</p>
+</footer>
+
+<script>
+/* ============================================================
+   CONSOLE DATA — edit any `img` / `padImg` value below if a
+   photo fails to resolve. They are Wikimedia Commons filenames.
+   ============================================================ */
+const GENS = [
+ {g:1,years:"1972 – 1977",title:"The first flicker",blurb:"No microchip, no sound, no score. A box of transistors that moved three white squares around a screen, sold with plastic overlays you taped to your TV. Nobody knew what to call it."},
+ {g:2,years:"1976 – 1983",title:"Cartridges and the crash",blurb:"Swappable cartridges meant one machine could play a hundred games. The industry grew so fast it drowned in its own shovelware, and in 1983 the American console market collapsed by roughly 97%."},
+ {g:3,years:"1983 – 1990",title:"Nintendo rebuilds the room",blurb:"A Japanese playing-card company restarted a dead industry by acting like a gatekeeper: locked cartridges, a quality seal, and a plumber who could jump."},
+ {g:4,years:"1987 – 1996",title:"16-bit and the first console war",blurb:"Sega attacked Nintendo directly — faster processor, faster mascot, ads that named the enemy. Meanwhile a grey brick with a green screen quietly outsold them both."},
+ {g:5,years:"1993 – 2001",title:"Everything turns 3D",blurb:"Polygons replaced sprites, CDs replaced cartridges, and a hi-fi company Nintendo had jilted walked in and took the market."},
+ {g:6,years:"1998 – 2005",title:"The DVD trojan horse",blurb:"Sega swung first and hardest, then left the hardware business forever. Sony sold a DVD player that happened to play games. Microsoft arrived with a hard drive and a plan."},
+ {g:7,years:"2004 – 2013",title:"Online, and everyone else",blurb:"Broadband turned consoles into networks. Then Nintendo stopped competing on power entirely, pointed a remote at the TV, and outsold both rivals."},
+ {g:8,years:"2011 – 2017",title:"Screens everywhere",blurb:"Phones ate the handheld market and two of the three console makers stumbled badly out of the gate. Then, right at the end of it, Nintendo stopped making two product lines and merged them into one."},
+ {g:9,years:"2020 – now",title:"The box stops being the point",blurb:"Power kept climbing, but the interesting arguments moved elsewhere — to subscriptions, to storage speed, to cross-platform releases, and to whether you need to own the hardware at all."}
+];
+
+const D = [
+/* ---------------- GEN 1 ---------------- */
+{g:1,id:"odyssey",name:"Magnavox Odyssey",aka:"The Brown Box, made real",maker:"Magnavox",jp:"—",na:"Sept 1972",end:"1975",sold:"≈350,000",price:"$99.95",
+ img:"Magnavox-Odyssey-Console-Set.jpg",imgq:"Magnavox Odyssey console",
+ padImg:"Magnavox-Odyssey-Controller.jpg",padq:"Magnavox Odyssey controller",padName:"Odyssey hand control",btn:1,
+ spec:[["Processor","None — 40 transistors, discrete logic"],["Memory","None"],["Media","Game cards (circuit jumpers)"],["Output","3 white dots, 1 line, no sound"],["Extras","Plastic TV overlays, dice, poker chips"]],
+ story:"Ralph Baer sketched the idea of playing games on a television in 1966 while waiting for a bus, and spent the next six years convincing anyone that it mattered. The Odyssey has no processor and no memory — the 'games' are cards that rewire the circuit, and the colour comes from translucent plastic sheets you stick to the glass. It shipped with dice and paper money because Magnavox wasn't sure people would accept a game with no board.",
+ rival:"None. It invented the category and had it entirely to itself.",
+ legacy:"Nolan Bushnell played Odyssey's tennis game at a demo, then released Pong. Magnavox sued and won, and Baer's patents earned Sanders Associates over $100 million.",
+ games:[
+ {t:"Table Tennis",y:1972,d:"Two paddles, one dot. The game Pong was accused of copying."},
+ {t:"Ski",y:1972,d:"You traced a paper course with a grease pencil on the screen."},
+ {t:"Haunted House",y:1972,d:"An early attempt at atmosphere with zero graphics to work with."},
+ {t:"Simon Says",y:1972,d:"Party game logic, decades before party games existed."},
+ {t:"Cat and Mouse",y:1972,d:"Chase mechanics in their absolute purest form."},
+ {t:"Submarine",y:1972,d:"Overlay of a periscope view; you supplied the sound effects."},
+ {t:"Analogic",y:1972,d:"A maths game — the first educational title on a console."},
+ {t:"Shooting Gallery",y:1972,d:"Bundled with a rifle. The first console light-gun game."},
+ {t:"Roulette",y:1972,d:"Came with chips and a felt mat. Barely a video game."},
+ {t:"States",y:1972,d:"US geography quiz. Proof nobody knew what this machine was for."}]},
+
+/* ---------------- GEN 2 ---------------- */
+{g:2,id:"a2600",name:"Atari 2600",aka:"Sold as the Video Computer System until 1982",maker:"Atari",jp:"Oct 1983",na:"Sept 11, 1977",end:"Jan 1, 1992",sold:"≈30 million",price:"$199",
+ img:"Atari-2600-Wood-4Sw-Set.jpg",imgq:"Atari 2600 console woodgrain",
+ padImg:"Atari-2600-Joystick.jpg",padq:"Atari 2600 joystick CX40",padName:"CX40 joystick",btn:1,
+ spec:[["Processor","MOS 6507 @ 1.19 MHz"],["Memory","128 bytes of RAM"],["Media","ROM cartridge, 2–4 KB typical"],["Graphics","TIA chip, 160×192, 4 colours per line"],["Lifespan","14 years on sale — a record until the PS2"]],
+ story:"128 bytes of RAM. Not kilobytes — bytes. There is no frame buffer, so programmers had to redraw the screen one scanline at a time in perfect sync with the electron beam, a technique they called 'racing the beam.' The 2600 is the machine that made cartridges normal, and it ran for fourteen years on a design meant to last three.",
+ rival:"Beat the Fairchild Channel F to market share, then buried Intellivision and ColecoVision under sheer library size.",
+ legacy:"Its own success killed it. Anyone could publish anything, quality collapsed, and the 1983 crash wiped out roughly 97% of the US market. Atari buried unsold cartridges in a New Mexico landfill — dug up and verified in 2014.",
+ games:[
+ {t:"Pac-Man",y:1982,d:"7 million sold and widely hated. Rushed in six weeks."},
+ {t:"Pitfall!",y:1982,d:"David Crane fit 255 rooms into 4 KB. Four million sold."},
+ {t:"Space Invaders",y:1980,d:"First arcade licence on a console. Quadrupled hardware sales."},
+ {t:"Adventure",y:1980,d:"First action-adventure, and hid the first Easter egg."},
+ {t:"Yars' Revenge",y:1982,d:"The best-selling game Atari made from scratch."},
+ {t:"River Raid",y:1982,d:"Carol Shaw's scrolling shooter — a landmark by a landmark designer."},
+ {t:"Missile Command",y:1981,d:"Cold War dread compressed into a trackball."},
+ {t:"Combat",y:1977,d:"The pack-in. Two tanks, a maze, and a friend on the couch."},
+ {t:"Asteroids",y:1981,d:"First game to use bank switching to break the size ceiling."},
+ {t:"E.T. the Extra-Terrestrial",y:1982,d:"Built in five weeks. The most famous failure in the medium."}]},
+
+{g:2,id:"intv",name:"Mattel Intellivision",aka:"'Intelligent Television'",maker:"Mattel Electronics",jp:"1982",na:"1979 test, 1980 national",end:"1990",sold:"≈3 million",price:"$299",
+ img:"Intellivision-Console-Set.jpg",imgq:"Intellivision console Mattel",
+ padImg:"Intellivision-Controller-FL.jpg",padq:"Intellivision hand controller keypad",padName:"Hand controller with 12-key pad",btn:16,
+ spec:[["Processor","GI CP1610 @ 894 kHz — 16-bit"],["Memory","1,456 bytes RAM"],["Media","ROM cartridge"],["Graphics","159×96, 16 colours"],["Add-on","Intellivoice speech module, 1982"]],
+ story:"Mattel's pitch was that its machine was simply better than Atari's, and it ran television ads with a journalist putting the two side by side to prove it — the first comparative advertising in games. The controller was a small disc you pressed with your thumb, plus a twelve-button keypad you covered with a printed overlay for each game. Sports fans loved it. Everyone else's thumbs hurt.",
+ rival:"Directly attacked the Atari 2600 on image quality, and won the argument while losing the market.",
+ legacy:"The first console to attempt speech synthesis, and the first with genuinely deep sports and strategy games. Its designers went on to found Activision's biggest early competitor, Imagic.",
+ games:[
+ {t:"Major League Baseball",y:1980,d:"The reason a lot of dads bought this console."},
+ {t:"Astrosmash",y:1981,d:"The pack-in. Simple, endless, and the system's best seller."},
+ {t:"Utopia",y:1981,d:"Arguably the first god game and the first real-time strategy."},
+ {t:"NFL Football",y:1979,d:"Play-calling depth no other console could handle."},
+ {t:"BurgerTime",y:1983,d:"The arcade port that looked better than Atari's version."},
+ {t:"AD&D: Cloudy Mountain",y:1982,d:"Procedural dungeons on a machine with 1.4 KB of RAM."},
+ {t:"TRON: Deadly Discs",y:1981,d:"Frantic, precise, and better than the film it came from."},
+ {t:"Night Stalker",y:1982,d:"Maze survival with genuinely tense pacing."},
+ {t:"Lock 'n' Chase",y:1982,d:"Pac-Man logic with doors you could slam behind you."},
+ {t:"B-17 Bomber",y:1982,d:"Talked to you, out loud, in 1982. People were stunned."}]},
+
+{g:2,id:"coleco",name:"ColecoVision",aka:"The arcade in the living room",maker:"Coleco",jp:"—",na:"Aug 1982",end:"1985",sold:"≈2 million",price:"$175",
+ img:"ColecoVision-wController-L.jpg",imgq:"ColecoVision console controller",
+ padImg:"ColecoVision-Controller.jpg",padq:"ColecoVision controller keypad",padName:"Keypad controller",btn:14,
+ spec:[["Processor","Zilog Z80A @ 3.58 MHz"],["Memory","1 KB RAM, 16 KB VRAM"],["Media","ROM cartridge"],["Graphics","256×192, 16 colours, 32 sprites"],["Add-on","Expansion Module #1 played Atari 2600 carts"]],
+ story:"Coleco's trick was to ship with a near-perfect port of Donkey Kong in the box, at a moment when Nintendo's arcade cabinet was the biggest thing in America. It sold half a million units in its first year. Then it made an adapter that let its machine play its main rival's entire library, and Atari sued — unsuccessfully.",
+ rival:"Out-specced the Atari 2600 badly, and for one year looked like the future of the industry.",
+ legacy:"Killed outright by the 1983 crash, only fourteen months after launch. Coleco pivoted to Cabbage Patch Kids and left electronics entirely.",
+ games:[
+ {t:"Donkey Kong",y:1982,d:"The pack-in that sold the machine. Nintendo's arcade hit, at home."},
+ {t:"Zaxxon",y:1982,d:"Isometric flight. Nothing on a home console looked like it."},
+ {t:"Mr. Do!",y:1983,d:"Digging, apples and clowns. Endlessly replayable."},
+ {t:"Ladybug",y:1982,d:"A maze game with doors — smarter than it first appears."},
+ {t:"Donkey Kong Junior",y:1983,d:"The sequel, and the last big arcade licence Coleco landed."},
+ {t:"Q*bert",y:1983,d:"Isometric hopping and swearing in nonsense syllables."},
+ {t:"Venture",y:1982,d:"Dungeon crawling with a smiley face for a hero."},
+ {t:"Time Pilot",y:1983,d:"Free-scrolling dogfights across five eras."},
+ {t:"Frenzy",y:1983,d:"Berzerk's sequel, arriving home before it left the arcade."},
+ {t:"Smurf: Rescue in Gargamel's Castle",y:1982,d:"The first licensed-cartoon platformer that wasn't terrible."}]},
+
+/* ---------------- GEN 3 ---------------- */
+{g:3,id:"nes",name:"Nintendo Entertainment System",aka:"Family Computer — 'Famicom' — in Japan",maker:"Nintendo",jp:"July 15, 1983",na:"Oct 18, 1985",end:"1995 (NA) / 2003 (JP)",sold:"61.91 million",price:"$199 (Deluxe Set)",
+ img:"NES-Console-Set.jpg",imgq:"Nintendo Entertainment System console",
+ padImg:"NES-Controller.jpg",padq:"NES controller",padName:"NES control pad",btn:4,
+ spec:[["Processor","Ricoh 2A03 (6502 core) @ 1.79 MHz"],["Memory","2 KB RAM, 2 KB VRAM"],["Media","ROM cartridge with lockout chip"],["Graphics","256×240, 25 colours on screen from 54"],["Sound","5 channels including one PCM"]],
+ story:"American retailers had been burned so badly by 1983 that Nintendo couldn't sell them a games console. So it didn't call it one — it shipped a grey box that looked like a VCR, bundled a toy robot, and called the whole thing an Entertainment System. The lockout chip meant Nintendo decided what got published, and the Seal of Quality meant parents could trust it. The industry was rebuilt on that control.",
+ rival:"Crushed the Sega Master System in North America and Japan, taking roughly 90% of the US market at its peak.",
+ legacy:"Established the D-pad, the shoulder-free two-button layout, franchise ownership, and the idea that a platform holder curates its own library. Nearly every convention of modern console business starts here.",
+ games:[
+ {t:"Super Mario Bros.",y:1985,d:"40.24 million sold. Taught the world how a platformer works."},
+ {t:"The Legend of Zelda",y:1986,d:"Battery save, open world, no instructions. Revolutionary."},
+ {t:"Super Mario Bros. 3",y:1988,d:"17.28 million. Often called the finest 2D platformer ever made."},
+ {t:"Metroid",y:1986,d:"Isolation, backtracking, and a reveal that broke the mould."},
+ {t:"Mega Man 2",y:1988,d:"Pick your own boss order. Still the series' high-water mark."},
+ {t:"Castlevania",y:1986,d:"Deliberate, heavy, punishing. A horror movie you controlled."},
+ {t:"Punch-Out!!",y:1987,d:"Pattern recognition disguised as a boxing game."},
+ {t:"Final Fantasy",y:1987,d:"Square's last-ditch effort before bankruptcy. It worked."},
+ {t:"Contra",y:1988,d:"Two players, thirty lives, and a code everyone still knows."},
+ {t:"Duck Hunt",y:1984,d:"28.31 million — bundled, but the Zapper genuinely worked."}]},
+
+{g:3,id:"sms",name:"Sega Master System",aka:"Sega Mark III in Japan",maker:"Sega",jp:"Oct 20, 1985",na:"June 1986",end:"1996 (still made in Brazil)",sold:"≈13 million",price:"$200",
+ img:"Sega-Master-System-Set.jpg",imgq:"Sega Master System console",
+ padImg:"Sega-Master-System-Controller.jpg",padq:"Sega Master System control pad",padName:"Control Pad",btn:2,
+ spec:[["Processor","Zilog Z80 @ 3.58 MHz"],["Memory","8 KB RAM, 16 KB VRAM"],["Media","Cartridge and Sega Card"],["Graphics","256×192, 32 colours from 64"],["Extras","3-D glasses and light phaser accessories"]],
+ story:"On paper the Master System beat the NES on nearly every specification — more colours, more video memory, better sprites. It lost anyway, because Nintendo had signed exclusivity deals with almost every third-party publisher in Japan and Sega had almost no library. Outside America the story flipped completely: it dominated Europe, and in Brazil it is still being manufactured and sold today.",
+ rival:"Lost North America and Japan to the NES by an enormous margin, then won Europe and Brazil outright.",
+ legacy:"Gave Sega the foothold and the engineering team it needed for the Mega Drive. Alex Kidd was its mascot until a hedgehog arrived.",
+ games:[
+ {t:"Phantasy Star",y:1987,d:"Battery-backed 3D dungeons and a female lead, in 1987."},
+ {t:"Alex Kidd in Miracle World",y:1986,d:"Built into later consoles. Sega's mascot before Sonic."},
+ {t:"Wonder Boy III: The Dragon's Trap",y:1989,d:"Transform into six creatures. Still brilliant today."},
+ {t:"Sonic the Hedgehog",y:1991,d:"A ground-up 8-bit redesign, not a port. Genuinely great."},
+ {t:"Shinobi",y:1988,d:"The arcade ninja game, cut down and somehow improved."},
+ {t:"Golden Axe Warrior",y:1991,d:"A Zelda clone that is honestly nearly as good."},
+ {t:"Castle of Illusion",y:1990,d:"Disney and Sega at the top of their game."},
+ {t:"R-Type",y:1988,d:"An impossible arcade port that the hardware pulled off."},
+ {t:"Ys: The Vanished Omens",y:1988,d:"You attacked by walking into things. It worked."},
+ {t:"Psycho Fox",y:1989,d:"Weird, fast, and beloved by everyone in Europe."}]},
+
+/* ---------------- GEN 4 ---------------- */
+{g:4,id:"genesis",name:"Sega Genesis",aka:"Mega Drive outside North America",maker:"Sega",jp:"Oct 29, 1988",na:"Aug 14, 1989",end:"1997",sold:"30.75 million",price:"$189",
+ img:"Sega-Genesis-Mod1-Set.jpg",imgq:"Sega Genesis Mega Drive model 1 console",
+ padImg:"Sega-Genesis-6But-Cont.jpg",padq:"Sega Genesis six button controller",padName:"Six-button Arcade Pad",btn:8,
+ spec:[["Processor","Motorola 68000 @ 7.6 MHz + Z80 @ 3.58 MHz"],["Memory","64 KB RAM, 64 KB VRAM"],["Media","ROM cartridge"],["Graphics","320×224, 61 colours from 512"],["Sound","Yamaha YM2612 FM synthesis"]],
+ story:"Sega of America's Tom Kalinske ran the most aggressive campaign in console history: cut the price, bundle Sonic, name Nintendo directly in adverts, and market to teenagers who thought Mario was for kids. 'Genesis does what Nintendon't' is still the most famous line in games advertising. For about three years Sega genuinely led the US market — the only time in its history it ever did.",
+ rival:"The Super Nintendo. This is the console war everyone means when they say 'the console war.'",
+ legacy:"Also the machine that taught Sega bad habits: the 32X, the Sega CD, and three incompatible add-ons that split its own audience and set up the Saturn's failure.",
+ games:[
+ {t:"Sonic the Hedgehog",y:1991,d:"15 million as a pack-in. Speed as a personality."},
+ {t:"Sonic the Hedgehog 2",y:1992,d:"Spin dash, Tails, and a global launch day."},
+ {t:"Streets of Rage 2",y:1992,d:"Yuzo Koshiro's soundtrack alone justifies the hardware."},
+ {t:"Gunstar Heroes",y:1993,d:"Treasure's debut. Still an engineering showpiece."},
+ {t:"Phantasy Star IV",y:1993,d:"The end of a saga, and the best JRPG Sega ever shipped."},
+ {t:"Mortal Kombat II",y:1994,d:"Uncensored, unlike the SNES version. Sold consoles on that alone."},
+ {t:"Shining Force II",y:1993,d:"Tactical RPG depth years ahead of its rivals."},
+ {t:"Ecco the Dolphin",y:1992,d:"Beautiful, lonely and famously difficult."},
+ {t:"Castlevania: Bloodlines",y:1994,d:"The one Castlevania Nintendo owners never got."},
+ {t:"Aladdin",y:1993,d:"Disney animators drew the frames. It shows in every one."}]},
+
+{g:4,id:"gameboy",name:"Game Boy",aka:"Sold 118.69 million with the Color model",maker:"Nintendo",jp:"April 21, 1989",na:"July 31, 1989",end:"2003",sold:"118.69 million (GB + GBC)",price:"$89.99",
+ img:"Game-Boy-FL.jpg",imgq:"Nintendo Game Boy DMG handheld",
+ padImg:"Game-Boy-FL.jpg",padq:"Nintendo Game Boy DMG handheld",padName:"Built-in D-pad, A, B, Start, Select",btn:4,
+ spec:[["Processor","Sharp LR35902 @ 4.19 MHz"],["Memory","8 KB RAM, 8 KB VRAM"],["Media","Game Pak cartridge"],["Screen","160×144, four shades of green, no backlight"],["Battery","4× AA — around 30 hours"]],
+ story:"Gunpei Yokoi's design philosophy was 'lateral thinking with withered technology': take cheap, boring, thoroughly understood parts and use them in a new way. The Game Boy was underpowered and monochrome the day it launched, and it destroyed three colour competitors, because it was tough, cheap, and its batteries lasted a transatlantic flight. Then Tetris arrived and made it a household object rather than a toy.",
+ rival:"Buried the Atari Lynx, the Sega Game Gear and the TurboExpress — all technically superior, all thirsty for batteries.",
+ legacy:"Pokémon's link-cable trading turned a dying five-year-old handheld into the biggest thing in children's entertainment on Earth. The Game Boy sold for fourteen years.",
+ games:[
+ {t:"Tetris",y:1989,d:"35 million. Bundled in the West, and the reason adults bought one."},
+ {t:"Pokémon Red / Blue",y:1996,d:"31.38 million. Trading over a cable was the whole point."},
+ {t:"Super Mario Land",y:1989,d:"18.14 million. Made by the Game Boy's own hardware team."},
+ {t:"The Legend of Zelda: Link's Awakening",y:1993,d:"No Ganon, no Zelda, no Hyrule. The strangest and best one."},
+ {t:"Super Mario Land 2: 6 Golden Coins",y:1992,d:"Wario's debut, and a huge leap in craft."},
+ {t:"Kirby's Dream Land",y:1992,d:"Masahiro Sakurai was 19 when he made it."},
+ {t:"Metroid II: Return of Samus",y:1991,d:"Claustrophobic and bleak on a four-shade screen."},
+ {t:"Wario Land: Super Mario Land 3",y:1994,d:"The villain gets his own game and it's better."},
+ {t:"Dr. Mario",y:1990,d:"The other puzzle game that ate everyone's evenings."},
+ {t:"Donkey Kong",y:1994,d:"Starts as the 1981 arcade game, then keeps going for 100 levels."}]},
+
+{g:4,id:"lynx",name:"Atari Lynx",aka:"The first colour handheld",maker:"Atari",jp:"—",na:"Sept 1989",end:"1995",sold:"≈2 million",price:"$179.99",
+ img:"Atari-Lynx-I-Handheld.jpg",imgq:"Atari Lynx handheld console",
+ padImg:"Atari-Lynx-I-Handheld.jpg",padq:"Atari Lynx handheld console",padName:"Built-in, flippable for left-handed play",btn:6,
+ spec:[["Processor","65C02 @ 4 MHz + custom Suzy/Mikey chips"],["Memory","64 KB RAM"],["Media","Cartridge"],["Screen","160×102 backlit colour, 4,096-colour palette"],["Battery","6× AA — around 4 hours"]],
+ story:"Designed by ex-Amiga engineers and originally called the Handy, the Lynx was years ahead: a backlit colour screen, hardware sprite scaling and rotation, and a case you could flip upside down for left-handed players. It could link sixteen units together. It also ate six AA batteries in four hours and cost twice what a Game Boy did, and Atari had almost nothing to sell for it.",
+ rival:"Technically demolished the Game Boy and lost to it completely.",
+ legacy:"The clearest lesson in games hardware: specifications do not sell consoles. Battery life, price and software do.",
+ games:[
+ {t:"California Games",y:1989,d:"The pack-in. Half-pipe, surfing, and a hacky sack event."},
+ {t:"Chip's Challenge",y:1989,d:"A puzzle game so good it outlived its own console by decades."},
+ {t:"Blue Lightning",y:1989,d:"Sprite-scaling flight combat that genuinely impressed people."},
+ {t:"Todd's Adventures in Slime World",y:1990,d:"Co-op exploration with a wonderfully odd tone."},
+ {t:"Batman Returns",y:1992,d:"The best-looking licensed game on the system."},
+ {t:"Rampart",y:1991,d:"Build walls, fire cannons, repeat. Still a great multiplayer game."},
+ {t:"Shadow of the Beast",y:1992,d:"Parallax layers used as a technical flex."},
+ {t:"Klax",y:1990,d:"Atari's answer to Tetris, and a good one."},
+ {t:"Warbirds",y:1991,d:"Biplane dogfights with six players over a cable."},
+ {t:"Zarlor Mercenary",y:1990,d:"Four-player co-op shooting, on handhelds, in 1990."}]},
+
+{g:4,id:"snes",name:"Super Nintendo",aka:"Super Famicom in Japan",maker:"Nintendo",jp:"Nov 21, 1990",na:"Aug 23, 1991",end:"1999 (NA) / 2003 (JP)",sold:"49.10 million",price:"$199",
+ img:"SNES-Mod1-Console-Set.jpg",imgq:"Super Nintendo Entertainment System console",
+ padImg:"SNES-Controller.jpg",padq:"SNES controller",padName:"SNES controller — first with shoulder buttons",btn:8,
+ spec:[["Processor","Ricoh 5A22 (65C816) @ 3.58 MHz"],["Memory","128 KB RAM, 64 KB VRAM"],["Media","ROM cartridge, some with co-processors"],["Graphics","512×448 max, 256 colours from 32,768"],["Trick","Mode 7 — hardware rotation and scaling of a background"]],
+ story:"Slower than the Genesis and proud of it. Nintendo spent its silicon budget on colour depth, a real sound chip designed by Sony's Ken Kutaragi, and Mode 7, which could tilt and spin a flat background into a fake 3D plane — the effect that made Super Mario Kart and F-Zero feel impossible. When cartridges couldn't keep up, Nintendo simply put extra processors inside them: the Super FX chip in Star Fox is a second computer in the box.",
+ rival:"Lost the first half of the war to the Genesis, then won the second half decisively on software.",
+ legacy:"Its controller layout — four face buttons in a diamond, two shoulder buttons — is essentially unchanged on every pad sold today. Its RPG library is still where most of the genre's ideas came from.",
+ games:[
+ {t:"Super Mario World",y:1990,d:"20.61 million. Yoshi, secret exits, and a near-perfect launch game."},
+ {t:"The Legend of Zelda: A Link to the Past",y:1991,d:"Two overlapping worlds. Set the template for 20 years."},
+ {t:"Super Metroid",y:1994,d:"Environmental storytelling with almost no words at all."},
+ {t:"Chrono Trigger",y:1995,d:"Multiple endings, no random encounters, a dream team of creators."},
+ {t:"Super Mario Kart",y:1992,d:"8.76 million. Invented an entire genre by accident."},
+ {t:"Final Fantasy VI",y:1994,d:"Fourteen playable characters and a villain who actually wins."},
+ {t:"Donkey Kong Country",y:1994,d:"9.3 million. Pre-rendered models that looked like nothing else."},
+ {t:"Street Fighter II Turbo",y:1993,d:"The arcade at home, and the reason fighting games exploded."},
+ {t:"EarthBound",y:1994,d:"Suburban America, funny and unsettling in equal measure."},
+ {t:"Star Fox",y:1993,d:"Polygons on a 3.58 MHz machine, via a chip hidden in the cartridge."}]},
+
+{g:4,id:"gamegear",name:"Sega Game Gear",aka:"A Master System you could hold",maker:"Sega",jp:"Oct 6, 1990",na:"April 1991",end:"1997",sold:"10.62 million",price:"$149.99",
+ img:"Sega-Game-Gear-WB.jpg",imgq:"Sega Game Gear handheld",
+ padImg:"Sega-Game-Gear-WB.jpg",padq:"Sega Game Gear handheld",padName:"Built-in D-pad and two buttons",btn:3,
+ spec:[["Processor","Zilog Z80 @ 3.58 MHz"],["Memory","8 KB RAM, 16 KB VRAM"],["Media","Cartridge"],["Screen","160×144 backlit colour, 32 colours from 4,096"],["Battery","6× AA — 3 to 5 hours"]],
+ story:"Sega's handheld was, internally, a Master System with a colour screen bolted on, which meant its library could be converted quickly and cheaply. It was held horizontally like a modern controller — a genuinely better idea than the Game Boy's vertical layout — and it had a TV tuner accessory that turned it into a portable television. Six AA batteries lasted about four hours, which was the whole problem.",
+ rival:"Sold ten million against the Game Boy's hundred-plus. Second place, by a factor of ten.",
+ legacy:"The best-selling handheld that wasn't a Nintendo, a record it held until the PSP. Its screens are famously the first component to die in every surviving unit.",
+ games:[
+ {t:"Sonic the Hedgehog 2",y:1992,d:"A completely different game from the Genesis version."},
+ {t:"Shining Force: The Sword of Hajya",y:1993,d:"A full tactical RPG in your pocket in 1993."},
+ {t:"Sonic Chaos",y:1993,d:"Probably the best-playing Sonic on the handheld."},
+ {t:"Columns",y:1990,d:"The pack-in puzzler. Sega's Tetris, more or less."},
+ {t:"Land of Illusion",y:1992,d:"Mickey Mouse, and quietly one of the finest platformers here."},
+ {t:"Defenders of Oasis",y:1992,d:"An Arabian-nights RPG that deserved far more attention."},
+ {t:"GG Aleste II",y:1993,d:"Compile's shooter — a technical marvel on this screen."},
+ {t:"Shinobi II: The Silent Fury",y:1992,d:"Tight, fast, and better than most console ninja games."},
+ {t:"Ristar",y:1995,d:"Arrived at the very end and almost nobody saw it."},
+ {t:"Streets of Rage 2",y:1993,d:"A brawler on a handheld, and it holds together."}]},
+
+/* ---------------- GEN 5 ---------------- */
+{g:5,id:"saturn",name:"Sega Saturn",aka:"Eight processors, no manual",maker:"Sega",jp:"Nov 22, 1994",na:"May 11, 1995",end:"2000",sold:"9.26 million",price:"$399",
+ img:"Sega-Saturn-Console-Set.jpg",imgq:"Sega Saturn console",
+ padImg:"Sega-Saturn-Controller.jpg",padq:"Sega Saturn controller model 2",padName:"Model 2 Control Pad",btn:9,
+ spec:[["Processor","2× Hitachi SH-2 @ 28.6 MHz"],["Memory","2 MB RAM + 1.5 MB VRAM"],["Media","CD-ROM"],["Graphics","Quadrilateral-based, not triangles"],["Chips","Eight processors in total"]],
+ story:"The Saturn was designed for 2D sprites, then hurriedly given 3D hardware when Sony's plans became clear. It renders with quadrilaterals rather than triangles, which nothing else in the industry did, and it has eight separate processors that developers had to coordinate by hand. Sega then launched it in America four months early, by surprise, at a trade show — leaving retailers who hadn't been told furious and developers with no finished games.",
+ rival:"Sony announced the PlayStation's $299 price immediately after Sega's $399, in a single sentence, on the same stage. It never recovered.",
+ legacy:"Dominant in Japan for a while, dead in the West. Its best games — Panzer Dragoon Saga, Radiant Silvergun — stayed rare and expensive for twenty years.",
+ games:[
+ {t:"Panzer Dragoon Saga",y:1998,d:"Around 6,000 copies in North America. A genuine lost classic."},
+ {t:"NiGHTS into Dreams",y:1996,d:"Sonic Team doing something nobody has copied since."},
+ {t:"Virtua Fighter 2",y:1995,d:"60 frames a second in 1995. Sold the console in Japan."},
+ {t:"Radiant Silvergun",y:1998,d:"Treasure's shooter. Held a legendary status for decades."},
+ {t:"Guardian Heroes",y:1996,d:"A brawler with branching paths and a six-player mode."},
+ {t:"Sega Rally Championship",y:1995,d:"Surfaces that actually behaved differently. Nothing else did that."},
+ {t:"Dragon Force",y:1996,d:"Two hundred units on screen in a strategy battle."},
+ {t:"Shining Force III",y:1997,d:"Three linked games. The West got only the first."},
+ {t:"Burning Rangers",y:1998,d:"Firefighting in transparent 3D. Ambitious and rough."},
+ {t:"Panzer Dragoon II Zwei",y:1996,d:"Rail shooting turned into something dreamlike."}]},
+
+{g:5,id:"ps1",name:"Sony PlayStation",aka:"PSX, PS one",maker:"Sony",jp:"Dec 3, 1994",na:"Sept 9, 1995",end:"March 2006",sold:"102.49 million",price:"$299",
+ img:"PSX-Console-wController.jpg",imgq:"Sony PlayStation SCPH-1001 console",
+ padImg:"PSX-DualShock-Controller.jpg",padq:"Sony PlayStation DualShock controller",padName:"DualShock — two sticks and rumble",btn:14,
+ spec:[["Processor","MIPS R3000A @ 33.87 MHz"],["Memory","2 MB RAM, 1 MB VRAM"],["Media","CD-ROM, 660 MB"],["Graphics","360,000 textured polygons/sec"],["Storage","Memory Card, 128 KB"]],
+ story:"Nintendo hired Sony to build a CD add-on for the SNES, then publicly cancelled the deal at a trade show in 1991 and announced a different partner instead. Sony's Ken Kutaragi was humiliated and given permission to finish the machine alone. The PlayStation targeted developers who wanted cheap CD manufacturing and easy 3D, courted publishers Nintendo had alienated with cartridge costs, and marketed to people in their twenties. It became the first console to sell 100 million units.",
+ rival:"Beat the Saturn into irrelevance and outsold the technically superior N64 three to one.",
+ legacy:"Made 3D the default, made CDs the default, made game development a business with budgets and marketing departments. The DualShock's twin-stick layout is now universal.",
+ games:[
+ {t:"Final Fantasy VII",y:1997,d:"Pulled Square away from Nintendo and made JRPGs mainstream in the West."},
+ {t:"Metal Gear Solid",y:1998,d:"Cinematic direction, voice acting, and a boss who read your memory card."},
+ {t:"Gran Turismo",y:1997,d:"10.85 million. A driving simulator that outsold most shooters."},
+ {t:"Castlevania: Symphony of the Night",y:1997,d:"Half of the word 'Metroidvania' comes from this game."},
+ {t:"Resident Evil 2",y:1998,d:"Two overlapping scenarios on two discs. Survival horror perfected."},
+ {t:"Tekken 3",y:1998,d:"8.36 million. The finest arcade conversion of its era."},
+ {t:"Crash Bandicoot",y:1996,d:"Sony's mascot, and a masterclass in squeezing the hardware."},
+ {t:"Silent Hill",y:1999,d:"Turned a hardware limit — draw distance — into fog, and into dread."},
+ {t:"Gran Turismo 2",y:1999,d:"Over 650 cars. Absurd for a 660 MB disc."},
+ {t:"Tony Hawk's Pro Skater 2",y:2000,d:"Manuals linked every trick into one endless combo."}]},
+
+{g:5,id:"n64",name:"Nintendo 64",aka:"Project Reality, then Ultra 64",maker:"Nintendo",jp:"June 23, 1996",na:"Sept 29, 1996",end:"2002",sold:"32.93 million",price:"$199",
+ img:"N64-Console-Set.jpg",imgq:"Nintendo 64 console",
+ padImg:"N64-Controller-Gray.jpg",padq:"Nintendo 64 controller",padName:"N64 controller — three prongs, one stick",btn:10,
+ spec:[["Processor","NEC VR4300 @ 93.75 MHz — 64-bit"],["Memory","4 MB RDRAM (8 MB with Expansion Pak)"],["Media","ROM cartridge, 4–64 MB"],["Graphics","Reality Coprocessor @ 62.5 MHz, hardware anti-aliasing"],["Ports","Four controller ports, built in"]],
+ story:"Nintendo stayed on cartridges to stop piracy and kill load times, and it cost them the entire third-party industry — a 64 MB cartridge cost roughly twenty times what a 660 MB CD did. What it got right was the controller. The analogue stick made 3D movement feel natural for the first time, and Super Mario 64 solved 3D camera control so completely that its solutions are still in use. Four controller ports as standard also made this the definitive machine for four people on a sofa.",
+ rival:"Comfortably second to the PlayStation, and the last time Nintendo competed on raw power for two decades.",
+ legacy:"Rumble Pak, analogue stick, Z-targeting, four-player split-screen. Almost every 3D convention that isn't Sony's is Nintendo's, and it starts here.",
+ games:[
+ {t:"Super Mario 64",y:1996,d:"11.91 million. Invented the 3D platformer and its camera."},
+ {t:"The Legend of Zelda: Ocarina of Time",y:1998,d:"Z-targeting solved 3D combat. Still cited as the best game ever made."},
+ {t:"GoldenEye 007",y:1997,d:"8.09 million. A film licence that reinvented console shooters."},
+ {t:"Mario Kart 64",y:1996,d:"9.87 million. Four-player Battle Mode ruined friendships for a decade."},
+ {t:"Super Smash Bros.",y:1999,d:"Sakurai's odd prototype became a Nintendo pillar."},
+ {t:"The Legend of Zelda: Majora's Mask",y:2000,d:"Built in a year on a three-day loop. Deeply strange."},
+ {t:"Banjo-Kazooie",y:1998,d:"Rare at its peak, and arguably better than Mario 64."},
+ {t:"Perfect Dark",y:2000,d:"Needed the Expansion Pak just to run its own campaign."},
+ {t:"Star Fox 64",y:1997,d:"Shipped with the Rumble Pak in the box."},
+ {t:"Paper Mario",y:2000,d:"Flat characters in a 3D world, and razor-sharp writing."}]},
+
+{g:5,id:"gbc",name:"Game Boy Color",aka:"CGB",maker:"Nintendo",jp:"Oct 21, 1998",na:"Nov 18, 1998",end:"2003",sold:"Counted within the 118.69 million Game Boy total",price:"$79.99",
+ img:"Game-Boy-Color-Purple.jpg",imgq:"Nintendo Game Boy Color handheld",
+ padImg:"Game-Boy-Color-Purple.jpg",padq:"Nintendo Game Boy Color handheld",padName:"Built-in D-pad, A, B, Start, Select",btn:4,
+ spec:[["Processor","Sharp custom @ 4.19 or 8.39 MHz"],["Memory","32 KB RAM, 16 KB VRAM"],["Media","Game Pak — backwards compatible"],["Screen","160×144, 56 colours from 32,768, no backlight"],["Battery","2× AA — around 30 hours"]],
+ story:"A stopgap, and one of the most profitable stopgaps ever made. Nintendo's real next handheld was years away, so it doubled the Game Boy's clock speed, added colour, kept the old cartridge slot, and even tinted old monochrome games automatically. Then Pokémon Gold and Silver arrived and sold 23 million copies. Still no backlight — you played it under a streetlight, like everyone else did.",
+ rival:"Faced the Neo Geo Pocket Color and the WonderSwan, and beat both without noticing they were there.",
+ legacy:"Backwards compatibility as a selling point begins here in earnest. Its infrared port also made Pokémon trading wireless for the first time.",
+ games:[
+ {t:"Pokémon Gold / Silver",y:1999,d:"23.73 million. A day-night clock and a whole second region."},
+ {t:"The Legend of Zelda: Oracle of Ages / Seasons",y:2001,d:"Two games by Capcom that linked to each other by password."},
+ {t:"Pokémon Crystal",y:2000,d:"First playable female protagonist in the series."},
+ {t:"Link's Awakening DX",y:1998,d:"The Game Boy classic, recoloured, with a bonus dungeon."},
+ {t:"Wario Land 3",y:2000,d:"Wario can't die. The puzzles are built around that."},
+ {t:"Metal Gear Solid: Ghost Babel",y:2000,d:"An entirely original MGS, and a great one."},
+ {t:"Shantae",y:2002,d:"Released after the GBA. Pushed the hardware further than anything."},
+ {t:"Dragon Warrior Monsters",y:1998,d:"Monster collecting that gave Pokémon a real fight."},
+ {t:"Pokémon Pinball",y:1999,d:"Had a rumble motor inside the cartridge."},
+ {t:"Tetris DX",y:1998,d:"Save files and profiles. The definitive portable Tetris."}]},
+
+/* ---------------- GEN 6 ---------------- */
+{g:6,id:"dreamcast",name:"Sega Dreamcast",aka:"Sega's last console",maker:"Sega",jp:"Nov 27, 1998",na:"Sept 9, 1999",end:"March 2001",sold:"9.13 million",price:"$199",
+ img:"Dreamcast-Console-Set.jpg",imgq:"Sega Dreamcast console",
+ padImg:"Dreamcast-Controller.jpg",padq:"Sega Dreamcast controller",padName:"Dreamcast controller with VMU slot",btn:7,
+ spec:[["Processor","Hitachi SH-4 @ 200 MHz"],["Memory","16 MB RAM + 8 MB VRAM"],["Media","GD-ROM, 1.2 GB"],["Graphics","PowerVR2, ~3 million polygons/sec"],["Network","56k modem built in — a first"]],
+ story:"The Dreamcast shipped with a modem in the box and a working online service, two years before anyone else took it seriously. Its memory card, the VMU, had its own screen and buttons and ran its own mini-games. It launched in America on 9/9/99 and took $98 million in 24 hours. Then Sony announced the PS2 with DVD playback, retailers stopped ordering, and eighteen months later Sega left the hardware business permanently.",
+ rival:"Killed not by a better machine but by the announcement of one. The PS2 hype cycle did the damage before a single unit shipped.",
+ legacy:"Console online play, downloadable content, and a persistent-world console RPG all start here. Sega became a software publisher and has been one ever since.",
+ games:[
+ {t:"Shenmue",y:1999,d:"$47 million to make. Open world with jobs, weather and shop hours."},
+ {t:"Soulcalibur",y:1999,d:"Better than the arcade original. Still a benchmark for launch games."},
+ {t:"Jet Set Radio",y:2000,d:"Cel-shading arrives, and defines a decade of art direction."},
+ {t:"Phantasy Star Online",y:2000,d:"The first console online RPG. Played with strangers, worldwide."},
+ {t:"Crazy Taxi",y:1999,d:"A licensed punk soundtrack and a perfect arcade loop."},
+ {t:"Rez",y:2001,d:"Music, synaesthesia and a rail shooter, all at once."},
+ {t:"Skies of Arcadia",y:2000,d:"Airship pirates. Warm, generous, and unfairly overlooked."},
+ {t:"Marvel vs. Capcom 2",y:2000,d:"56 characters. The arcade port people bought the console for."},
+ {t:"Power Stone 2",y:2000,d:"Four-player 3D brawling that nothing has quite matched."},
+ {t:"Resident Evil – Code: Veronica",y:2000,d:"The first Resident Evil with real 3D environments."}]},
+
+{g:6,id:"ps2",name:"PlayStation 2",aka:"The best-selling console ever made",maker:"Sony",jp:"March 4, 2000",na:"Oct 26, 2000",end:"Jan 4, 2013",sold:"160.0 million",price:"$299",
+ img:"Sony-PlayStation-2-30001-Console-FL.jpg",imgq:"Sony PlayStation 2 console",
+ padImg:"DualShock-2-Controller.jpg",padq:"Sony DualShock 2 controller",padName:"DualShock 2 — every button pressure-sensitive",btn:14,
+ spec:[["Processor","Emotion Engine @ 294.9 MHz"],["Memory","32 MB RDRAM + 4 MB VRAM"],["Media","DVD-ROM, plus every PS1 disc"],["Graphics","Graphics Synthesizer @ 147.5 MHz"],["Lifespan","12 years, 3 months on sale"]],
+ story:"In 2000, a standalone DVD player cost more than a PlayStation 2. Sony sold a games console that was also the cheapest way to watch films, and parents bought it for the wrong reason. Backwards compatibility with the PS1 library meant it launched with a thousand games already available. It stayed in production for twelve years, and 4,000 games were made for it — still the largest library any console has ever had.",
+ rival:"Beat the Dreamcast before launching, then took roughly 70% of the generation against the GameCube and the original Xbox combined.",
+ legacy:"160 million units. No console has come close since, and given how the market has fragmented, probably none will.",
+ games:[
+ {t:"Grand Theft Auto: San Andreas",y:2004,d:"17.33 million. Three cities, and a generational culture shock."},
+ {t:"Gran Turismo 3: A-Spec",y:2001,d:"14.89 million. The game that showed what the hardware could do."},
+ {t:"Shadow of the Colossus",y:2005,d:"Sixteen bosses, no enemies in between. An argument for games as art."},
+ {t:"Metal Gear Solid 3: Snake Eater",y:2004,d:"Camouflage, survival, and the best boss fight ever written."},
+ {t:"Final Fantasy X",y:2001,d:"8.05 million. Full voice acting arrives in the series."},
+ {t:"God of War",y:2005,d:"Brutal, fast, and technically astonishing on ageing hardware."},
+ {t:"Kingdom Hearts",y:2002,d:"Disney and Final Fantasy. It should not have worked."},
+ {t:"Okami",y:2006,d:"You paint with the controller. Ink-wash art, sold terribly, adored."},
+ {t:"Devil May Cry",y:2001,d:"Started as Resident Evil 4, became its own genre."},
+ {t:"Silent Hill 2",y:2001,d:"Psychological horror that most films still can't match."}]},
+
+{g:6,id:"gba",name:"Game Boy Advance",aka:"AGB — later the SP and the Micro",maker:"Nintendo",jp:"March 21, 2001",na:"June 11, 2001",end:"2010",sold:"81.51 million",price:"$99.99",
+ img:"Nintendo-Game-Boy-Advance-Purple-FL.jpg",imgq:"Nintendo Game Boy Advance handheld",
+ padImg:"Nintendo-Game-Boy-Advance-Purple-FL.jpg",padq:"Nintendo Game Boy Advance handheld",padName:"Built-in — first handheld with shoulder buttons",btn:6,
+ spec:[["Processor","ARM7TDMI @ 16.78 MHz"],["Memory","32 KB internal + 256 KB external WRAM"],["Media","Game Pak — plays Game Boy and GBC carts"],["Screen","240×160, 32,768 colours, still no backlight"],["Battery","2× AA — around 15 hours"]],
+ story:"Roughly a portable Super Nintendo, held sideways, with two shoulder buttons. Nintendo shipped it without a light — again — and spent two years being told off before the folding SP model finally added one in 2003. The library is one of the strongest of any handheld, largely because 16-bit-era developers could work on it immediately and because Nintendo let its smaller teams experiment.",
+ rival:"Faced the Neo Geo Pocket, the N-Gage and the Tapwave Zodiac. None of them mattered.",
+ legacy:"The last cartridge handheld, the last 2D-first Nintendo platform, and the machine that carried Fire Emblem, Advance Wars and WarioWare to the West.",
+ games:[
+ {t:"Pokémon Ruby / Sapphire",y:2002,d:"16.22 million. Abilities, natures, and double battles."},
+ {t:"The Legend of Zelda: The Minish Cap",y:2004,d:"Capcom again, and the prettiest 2D Zelda made."},
+ {t:"Metroid Fusion",y:2002,d:"Tense, linear, and genuinely frightening in places."},
+ {t:"Advance Wars",y:2001,d:"Turn-based war, perfectly balanced, released in America on 9/10/2001."},
+ {t:"Golden Sun",y:2001,d:"Effects that looked impossible on this screen."},
+ {t:"Castlevania: Aria of Sorrow",y:2003,d:"Steal a soul from every enemy. The best of the GBA trilogy."},
+ {t:"Fire Emblem",y:2003,d:"The first one released outside Japan. Permanent death and all."},
+ {t:"WarioWare, Inc.",y:2003,d:"Five-second games. An entirely new idea about pacing."},
+ {t:"Mother 3",y:2006,d:"Japan only. Still the most requested untranslated game there is."},
+ {t:"Metroid: Zero Mission",y:2004,d:"A remake that improves on a classic without softening it."}]},
+
+{g:6,id:"gamecube",name:"Nintendo GameCube",aka:"The one with the handle",maker:"Nintendo",jp:"Sept 14, 2001",na:"Nov 18, 2001",end:"2007",sold:"21.74 million",price:"$199",
+ img:"GameCube-Console-Set.jpg",imgq:"Nintendo GameCube console",
+ padImg:"GameCube-Controller.jpg",padq:"Nintendo GameCube controller",padName:"GameCube controller — one huge A button",btn:8,
+ spec:[["Processor","IBM 'Gekko' PowerPC @ 485 MHz"],["Memory","24 MB 1T-SRAM + 16 MB"],["Media","8 cm miniDVD, 1.5 GB"],["Graphics","ATI 'Flipper' @ 162 MHz"],["Design","Carry handle moulded into the back"]],
+ story:"Nintendo built a machine that was genuinely powerful, easy to develop for, and impossible to sell. The small discs couldn't hold a DVD movie, there was no online service, and the purple lunchbox with a handle read as a children's toy at exactly the moment the audience was ageing up. The controller, though, is still argued about — the A button is enormous and the others cluster around it, so your thumb knows which one it's on without looking.",
+ rival:"Third place, behind the PS2 and, narrowly, the original Xbox.",
+ legacy:"Its worst-selling generation produced Metroid Prime, Wind Waker and Melee. Smash Bros. tournaments still run on GameCube controllers to this day.",
+ games:[
+ {t:"Super Smash Bros. Melee",y:2001,d:"7.41 million. Still played competitively, twenty-five years on."},
+ {t:"Metroid Prime",y:2002,d:"First person, but a Metroid game to the core. A stunning gamble."},
+ {t:"The Legend of Zelda: The Wind Waker",y:2002,d:"Hated at reveal for its art style. Aged better than anything else."},
+ {t:"Resident Evil 4",y:2005,d:"Rebuilt the series and every third-person shooter after it."},
+ {t:"Mario Kart: Double Dash!!",y:2003,d:"6.96 million. Two racers per kart — nobody has revived it."},
+ {t:"Super Mario Sunshine",y:2002,d:"A water jetpack, and a strange, sun-drenched holiday."},
+ {t:"Animal Crossing",y:2001,d:"Runs on your real clock. Nothing else did that then."},
+ {t:"Paper Mario: The Thousand-Year Door",y:2004,d:"The funniest script Nintendo has ever published."},
+ {t:"Eternal Darkness",y:2002,d:"Sanity effects that pretended to delete your save file."},
+ {t:"F-Zero GX",y:2003,d:"Made by Sega. Punishingly fast, and never followed up."}]},
+
+{g:6,id:"xbox",name:"Xbox",aka:"'The Duke'",maker:"Microsoft",jp:"Feb 22, 2002",na:"Nov 15, 2001",end:"2008",sold:"24 million",price:"$299",
+ img:"Xbox-console.jpg",imgq:"Microsoft Xbox original console",
+ padImg:"Xbox-Duke-Controller.jpg",padq:"Microsoft Xbox Duke controller",padName:"The Duke — replaced by Controller S",btn:12,
+ spec:[["Processor","Intel Pentium III @ 733 MHz"],["Memory","64 MB DDR shared"],["Media","DVD-ROM"],["Graphics","NVIDIA NV2A @ 233 MHz"],["First","Built-in hard drive and Ethernet, as standard"]],
+ story:"Microsoft's console was essentially a locked-down PC, and it shipped with two things nobody else had bothered with: a hard drive, so games could cache and you could rip CDs, and an Ethernet port, because Microsoft assumed broadband would win. Xbox Live launched a year later with a unified friends list, voice chat through a headset, and one account across every game. That system, not the hardware, is what Microsoft actually built.",
+ rival:"Beat the GameCube for second place in America and lost catastrophically in Japan, where it sold under half a million units.",
+ legacy:"Halo made the console-shooter viable, and Xbox Live turned online play into an expected feature rather than an experiment. The original 'Duke' controller was so large it was withdrawn and redesigned.",
+ games:[
+ {t:"Halo: Combat Evolved",y:2001,d:"Two weapons, regenerating shields, and a working console shooter."},
+ {t:"Halo 2",y:2004,d:"Launched Xbox Live matchmaking. Broke online records for years."},
+ {t:"Star Wars: Knights of the Old Republic",y:2003,d:"BioWare's best twist, and a superb Star Wars story."},
+ {t:"Ninja Gaiden",y:2004,d:"Brutally hard, beautiful, and technically flawless."},
+ {t:"Jet Set Radio Future",y:2002,d:"Sega on Microsoft hardware, one year after leaving hardware."},
+ {t:"Fable",y:2004,d:"Promised more than it delivered and was still fascinating."},
+ {t:"Project Gotham Racing 2",y:2003,d:"Kudos points made style worth more than speed."},
+ {t:"Splinter Cell",y:2002,d:"Light and shadow as a mechanic, on hardware that could render both."},
+ {t:"The Elder Scrolls III: Morrowind",y:2002,d:"A genuine PC RPG on a console, load times and all."},
+ {t:"Burnout 3: Takedown",y:2004,d:"Crashing into people, rewarded. Criterion at its peak."}]},
+
+/* ---------------- GEN 7 ---------------- */
+{g:7,id:"ds",name:"Nintendo DS",aka:"Dual Screen — later Lite, DSi, DSi XL",maker:"Nintendo",jp:"Dec 2, 2004",na:"Nov 21, 2004",end:"2014",sold:"154.02 million",price:"$149.99",
+ img:"Nintendo-DS-Fat-Blue.jpg",imgq:"Nintendo DS handheld original",
+ padImg:"Nintendo-DS-Fat-Blue.jpg",padq:"Nintendo DS handheld original",padName:"Built-in, plus a resistive touchscreen and stylus",btn:8,
+ spec:[["Processor","ARM946E-S @ 67 MHz + ARM7TDMI @ 33 MHz"],["Memory","4 MB RAM"],["Media","DS Card, plus a Game Boy Advance slot"],["Screens","Two 256×192 — the lower one is a touchscreen"],["Extras","Microphone and Wi-Fi built in"]],
+ story:"Nintendo called it a 'third pillar' because it genuinely wasn't sure the thing would work — two screens, one of them touch-sensitive, at a moment when the PSP looked like the future. It won by a distance, because a touchscreen and a microphone let designers make games for people who had never held a controller. Brain Age and Nintendogs sold to grandparents. It is the second best-selling gaming device ever made, behind only the PS2.",
+ rival:"Beat the far more powerful PSP roughly two to one.",
+ legacy:"Proved that a new input method beats a faster processor. Every idea Nintendo has had since — Wii, Switch — follows the logic the DS established.",
+ games:[
+ {t:"New Super Mario Bros.",y:2006,d:"30.80 million. Brought 2D Mario back after 15 years."},
+ {t:"Mario Kart DS",y:2005,d:"23.60 million. First online Mario Kart, and it worked."},
+ {t:"Nintendogs",y:2005,d:"23.96 million. You talked to a puppy through the microphone."},
+ {t:"Pokémon Diamond / Pearl",y:2006,d:"17.67 million. Global trading over the internet."},
+ {t:"Brain Age",y:2005,d:"19.01 million. Sold to people who did not consider themselves gamers."},
+ {t:"The Legend of Zelda: Phantom Hourglass",y:2007,d:"Controlled entirely with the stylus. Bolder than it gets credit for."},
+ {t:"Professor Layton and the Curious Village",y:2007,d:"Puzzle books, animation, and a genuinely good mystery."},
+ {t:"Elite Beat Agents",y:2006,d:"Rhythm tapping with an absurd, wonderful premise."},
+ {t:"Ghost Trick: Phantom Detective",y:2010,d:"From the Ace Attorney creator. Almost nobody bought it."},
+ {t:"Castlevania: Dawn of Sorrow",y:2005,d:"The best-playing Metroidvania on the system."}]},
+
+{g:7,id:"psp",name:"PlayStation Portable",aka:"PSP",maker:"Sony",jp:"Dec 12, 2004",na:"March 24, 2005",end:"2014",sold:"≈80 million",price:"$249",
+ img:"Sony-PSP-1000-Body.jpg",imgq:"Sony PSP 1000 handheld",
+ padImg:"Sony-PSP-1000-Body.jpg",padq:"Sony PSP 1000 handheld",padName:"Built-in, with a single analogue nub",btn:9,
+ spec:[["Processor","MIPS R4000 @ 1–333 MHz"],["Memory","32 MB RAM (64 MB on later models)"],["Media","UMD optical disc, 1.8 GB"],["Screen","480×272 widescreen LCD"],["Network","Wi-Fi built in"]],
+ story:"The PSP looked like a piece of consumer electronics rather than a toy, and it could play films, music and games at a fidelity close to the PS2. Its problem was the UMD — a tiny proprietary disc with a spinning motor that drained the battery and loaded slowly — and a single analogue nub in a generation that had settled on two sticks. It also became the most-hacked handheld ever made, which cut both ways.",
+ rival:"Lost heavily to the DS in the West. In Japan, Monster Hunter made it a cultural phenomenon on its own.",
+ legacy:"Established that a handheld could look grown-up. Its remote-play and digital-store ideas went straight into the PS Vita and then into every Sony console since.",
+ games:[
+ {t:"Monster Hunter Freedom Unite",y:2008,d:"Four friends, one couch, hundreds of hours. Japan's defining PSP game."},
+ {t:"Grand Theft Auto: Liberty City Stories",y:2005,d:"A full GTA on a handheld. Nobody believed it until it shipped."},
+ {t:"Crisis Core: Final Fantasy VII",y:2007,d:"A prequel that reframed the game it came from."},
+ {t:"God of War: Chains of Olympus",y:2008,d:"Console-scale spectacle at handheld resolution."},
+ {t:"Patapon",y:2007,d:"Command an army by keeping a drum rhythm."},
+ {t:"LocoRoco",y:2006,d:"You tilt the world, not the character. Joyful and strange."},
+ {t:"Persona 3 Portable",y:2009,d:"Added a female route and became the definitive version."},
+ {t:"Metal Gear Solid: Peace Walker",y:2010,d:"Base management and co-op, both later reused in MGS V."},
+ {t:"Final Fantasy Tactics: The War of the Lions",y:2007,d:"A better translation of one of the great strategy RPGs."},
+ {t:"Lumines",y:2004,d:"Puzzle blocks driven by the soundtrack's timing."}]},
+
+{g:7,id:"x360",name:"Xbox 360",aka:"Launched a year before its rivals",maker:"Microsoft",jp:"Dec 10, 2005",na:"Nov 22, 2005",end:"April 2016",sold:"≈85.8 million",price:"$299 / $399",
+ img:"Xbox-360-Pro-wController.jpg",imgq:"Xbox 360 console",
+ padImg:"Xbox-360-S-Controller.jpg",padq:"Xbox 360 wireless controller",padName:"Xbox 360 controller — the modern standard",btn:11,
+ spec:[["Processor","IBM Xenon, 3 cores @ 3.2 GHz"],["Memory","512 MB GDDR3, shared"],["Media","DVD-DL, 8.5 GB"],["Graphics","ATI Xenos @ 500 MHz, unified shaders"],["Trouble","Red Ring of Death — a $1.15 billion repair programme"]],
+ story:"Microsoft shipped a full year ahead of Sony and spent that year building the habits: Achievements, a unified friends list, party chat, and a digital storefront that let small teams sell games directly. Then a manufacturing fault caused an enormous number of consoles to fail, and Microsoft extended the warranty to three years and wrote off $1.15 billion rather than lose the audience. It worked — the 360 led the generation in America for most of its life.",
+ rival:"Neck and neck with the PS3 for the whole generation, and both were beaten by the Wii.",
+ legacy:"Achievements changed how people play. Xbox Live Arcade made independent games a commercial category — Braid and Limbo exist because of that storefront.",
+ games:[
+ {t:"Halo 3",y:2007,d:"$170 million in 24 hours. The Xbox brand at its absolute peak."},
+ {t:"Gears of War",y:2006,d:"Cover shooting, chest-high walls, and a decade of imitators."},
+ {t:"Mass Effect 2",y:2010,d:"A cast you actually cared about, and a suicide mission you could fail."},
+ {t:"Red Dead Redemption",y:2010,d:"Rockstar's western — an elegy, not a power fantasy."},
+ {t:"Minecraft: Xbox 360 Edition",y:2012,d:"Brought Minecraft to living rooms and sold over 12 million."},
+ {t:"The Elder Scrolls V: Skyrim",y:2011,d:"An open world so large it became a punchline and a genre."},
+ {t:"Portal 2",y:2011,d:"Co-op puzzle design and comic writing at the very highest level."},
+ {t:"Braid",y:2008,d:"The game that made 'indie' a commercial category on consoles."},
+ {t:"Fallout 3",y:2008,d:"Washington DC after the bombs. Enormous and grim."},
+ {t:"Forza Horizon",y:2012,d:"A racing festival — the series' best idea, arriving late in the cycle."}]},
+
+{g:7,id:"ps3",name:"PlayStation 3",aka:"'It only does everything'",maker:"Sony",jp:"Nov 11, 2006",na:"Nov 17, 2006",end:"2017",sold:"87.4 million",price:"$499 / $599",
+ img:"Sony-PlayStation-3-CECHA01-wController.jpg",imgq:"Sony PlayStation 3 console",
+ padImg:"Sony-DualShock-3.jpg",padq:"Sony DualShock 3 controller",padName:"Sixaxis, then DualShock 3",btn:15,
+ spec:[["Processor","Cell BE @ 3.2 GHz — 1 general core, 7 specialised"],["Memory","256 MB XDR + 256 MB GDDR3"],["Media","Blu-ray, 25–50 GB"],["Graphics","NVIDIA RSX @ 550 MHz"],["Included","Free online play, and a Blu-ray player"]],
+ story:"Sony bet on the Cell processor — a chip with one ordinary core and seven specialised ones that developers had to feed by hand. It was extraordinarily powerful and extraordinarily hard to program, and for three years multi-platform games ran worse on PS3 than on Xbox. It also cost $599 at launch, which the audience rejected outright. Sony spent the generation clawing back from that, and by the end its own studios were producing the best-looking games on any platform.",
+ rival:"Started the generation in a distant third and finished level with the Xbox 360.",
+ legacy:"Free online play kept a floor under Sony's audience. Its Blu-ray drive won the format war for Sony almost single-handedly, and Naughty Dog's Uncharted and Last of Us defined what a studio-driven console exclusive looks like.",
+ games:[
+ {t:"The Last of Us",y:2013,d:"Released at the very end of the cycle and redefined the ceiling."},
+ {t:"Uncharted 2: Among Thieves",y:2009,d:"Set-piece direction that film studios started copying."},
+ {t:"Demon's Souls",y:2009,d:"Sony passed on publishing it in the West. It started a genre."},
+ {t:"Metal Gear Solid 4",y:2008,d:"Built specifically for the Cell. It could not run elsewhere."},
+ {t:"Journey",y:2012,d:"Two hours, no dialogue, strangers you can never speak to."},
+ {t:"Gran Turismo 5",y:2010,d:"11.95 million, and five years in development."},
+ {t:"LittleBigPlanet",y:2008,d:"Play, create, share — a decade before that became standard."},
+ {t:"Heavy Rain",y:2010,d:"An interactive thriller where failure kept the story going."},
+ {t:"Ni no Kuni: Wrath of the White Witch",y:2011,d:"Studio Ghibli animated a JRPG. It looks like nothing else."},
+ {t:"Ratchet & Clank: A Crack in Time",y:2009,d:"The most polished platformer of the generation."}]},
+
+{g:7,id:"wii",name:"Nintendo Wii",aka:"Codename 'Revolution'",maker:"Nintendo",jp:"Dec 2, 2006",na:"Nov 19, 2006",end:"Oct 2013",sold:"101.63 million",price:"$249",
+ img:"Wii-console.jpg",imgq:"Nintendo Wii console",
+ padImg:"Wii-Remote-Image.jpg",padq:"Nintendo Wii Remote controller",padName:"Wii Remote and Nunchuk",btn:11,
+ spec:[["Processor","IBM 'Broadway' @ 729 MHz"],["Memory","88 MB total"],["Media","12 cm disc, 4.7 GB"],["Graphics","ATI 'Hollywood' @ 243 MHz, 480p maximum"],["Input","Accelerometer plus infrared pointing"]],
+ story:"Nintendo gave up on the specification race entirely. The Wii was barely more powerful than a GameCube and output standard definition in an era of HDTVs, and it outsold the PS3 and the Xbox 360. The Wii Remote is held like a TV remote, so it doesn't look intimidating, and Wii Sports — bundled in the box in most territories — taught the controls in about ninety seconds. It sold to families, care homes and physiotherapy clinics.",
+ rival:"Won the generation outright on units, while losing badly on third-party support and on the audience that buys many games per console.",
+ legacy:"Wii Sports is the best-selling single-platform game in history at 82.90 million. The wider lesson — that accessible input opens a market that raw power cannot — is the one Nintendo has run on ever since.",
+ games:[
+ {t:"Wii Sports",y:2006,d:"82.90 million. Bundled, and the best tutorial ever written."},
+ {t:"Mario Kart Wii",y:2008,d:"37.38 million. A plastic steering wheel in the box."},
+ {t:"Super Mario Galaxy",y:2007,d:"Gravity as a level design tool. An orchestral score, too."},
+ {t:"New Super Mario Bros. Wii",y:2009,d:"30.32 million. Four-player 2D Mario, chaotic on purpose."},
+ {t:"The Legend of Zelda: Twilight Princess",y:2006,d:"Mirrored so Link would be right-handed with the remote."},
+ {t:"Super Smash Bros. Brawl",y:2008,d:"13.32 million, and a soundtrack of 250 tracks."},
+ {t:"Xenoblade Chronicles",y:2010,d:"Nearly never left Japan. A fan campaign got it localised."},
+ {t:"Wii Fit",y:2007,d:"22.67 million, with a balance board. Sold to people who never bought games."},
+ {t:"Metroid Prime 3: Corruption",y:2007,d:"Pointer aiming that genuinely improved the series."},
+ {t:"Super Mario Galaxy 2",y:2010,d:"More ideas per hour than almost any game ever made."}]},
+
+/* ---------------- GEN 8 ---------------- */
+{g:8,id:"3ds",name:"Nintendo 3DS",aka:"3D without glasses",maker:"Nintendo",jp:"Feb 26, 2011",na:"March 27, 2011",end:"Sept 2020",sold:"75.94 million",price:"$249.99",
+ img:"Nintendo-3DS-AquaOpen.jpg",imgq:"Nintendo 3DS handheld",
+ padImg:"Nintendo-3DS-AquaOpen.jpg",padq:"Nintendo 3DS handheld",padName:"Built-in, plus a Circle Pad and touchscreen",btn:10,
+ spec:[["Processor","2× ARM11 @ 268 MHz"],["Memory","128 MB RAM"],["Media","3DS Card, plus DS backwards compatibility"],["Screens","Autostereoscopic 800×240 top, 320×240 touch"],["Extras","Two outward cameras, StreetPass, gyroscope"]],
+ story:"It launched at $249.99 into a market that had discovered smartphone games, sold terribly, and got a $80 price cut inside five months — with Nintendo's president taking a 50% pay cut over it. Then the software arrived. StreetPass, which quietly swapped data with any other 3DS you walked past, gave the machine a social life that nothing else has replicated. It ended up outselling the entire PlayStation Vita line by more than four to one.",
+ rival:"Beat the PS Vita comprehensively, and lost the wider handheld market to phones.",
+ legacy:"The last dedicated handheld Nintendo made before the Switch merged the two lines. Its Virtual Console and eShop closure in 2023 made preservation a mainstream argument.",
+ games:[
+ {t:"Mario Kart 7",y:2011,d:"18.98 million. Gliders, underwater sections, and rock-solid online."},
+ {t:"Pokémon X / Y",y:2013,d:"16.71 million. The series' jump to full 3D models."},
+ {t:"The Legend of Zelda: A Link Between Worlds",y:2013,d:"Merge into walls. A sequel to A Link to the Past, 22 years later."},
+ {t:"Fire Emblem: Awakening",y:2012,d:"Made to be the series' last game. It saved the franchise instead."},
+ {t:"Super Mario 3D Land",y:2011,d:"12.81 million. The 3D effect was genuinely useful for depth."},
+ {t:"Animal Crossing: New Leaf",y:2012,d:"13.04 million. You're the mayor now."},
+ {t:"Monster Hunter 4 Ultimate",y:2014,d:"The game that finally broke Monster Hunter in the West."},
+ {t:"Bravely Default",y:2012,d:"A turn-based RPG built on banking and spending your turns."},
+ {t:"Kid Icarus: Uprising",y:2012,d:"Sakurai again. Awkward controls, brilliant everything else."},
+ {t:"Luigi's Mansion: Dark Moon",y:2013,d:"A twelve-year wait for a sequel, and worth it."}]},
+
+{g:8,id:"vita",name:"PlayStation Vita",aka:"PS Vita",maker:"Sony",jp:"Dec 17, 2011",na:"Feb 22, 2012",end:"March 2019",sold:"≈16 million",price:"$249 / $299",
+ img:"PlayStation-Vita-1000-FL.jpg",imgq:"PlayStation Vita handheld",
+ padImg:"PlayStation-Vita-1000-FL.jpg",padq:"PlayStation Vita handheld",padName:"Built-in — twin sticks and a rear touchpad",btn:12,
+ spec:[["Processor","Quad-core ARM Cortex-A9"],["Memory","512 MB RAM + 128 MB VRAM"],["Media","Vita card and digital download"],["Screen","5-inch OLED, 960×544"],["Input","Twin analogue sticks, front and rear touch"]],
+ story:"By most accounts the best-built handheld ever made — a five-inch OLED screen, two real analogue sticks, and console-quality games in 2012. It failed for reasons that had nothing to do with the hardware. The proprietary memory cards cost more than the games, Sony's own studios abandoned it within two years, and the phone in everyone's pocket was already good enough. Its afterlife as a Japanese visual-novel and indie machine kept it alive far longer than Sony intended.",
+ rival:"Lost to the 3DS by more than four to one, and to smartphones by an amount nobody bothered to measure.",
+ legacy:"Sony's last handheld. Remote Play, its most durable idea, survives on every PlayStation since — and the 2023 PlayStation Portal is essentially that idea with the games removed.",
+ games:[
+ {t:"Persona 4 Golden",y:2012,d:"The definitive version, and the reason many people bought one."},
+ {t:"Gravity Rush",y:2012,d:"Fall in any direction you like. Genuinely original."},
+ {t:"Tearaway",y:2013,d:"Used every input — including your finger poking through the screen."},
+ {t:"Danganronpa: Trigger Happy Havoc",y:2010,d:"Class trials, cruel logic, and a mascot bear."},
+ {t:"Killzone: Mercenary",y:2013,d:"Proof the hardware could match a home console shooter."},
+ {t:"Uncharted: Golden Abyss",y:2011,d:"A launch game that looked like a PS3 game."},
+ {t:"Soul Sacrifice",y:2013,d:"Grim, strange, and made by Keiji Inafune."},
+ {t:"Muramasa Rebirth",y:2013,d:"Vanillaware art on an OLED screen. Still beautiful."},
+ {t:"Wipeout 2048",y:2012,d:"Cross-play with the PS3, in 2012."},
+ {t:"Dragon's Crown",y:2013,d:"A four-player brawler with hand-painted everything."}]},
+
+{g:8,id:"wiiu",name:"Wii U",aka:"The name nobody understood",maker:"Nintendo",jp:"Dec 8, 2012",na:"Nov 18, 2012",end:"Jan 2017",sold:"13.56 million",price:"$299 / $349",
+ img:"Wii-U-Console-and-Gamepad.png",imgq:"Wii U console and GamePad",
+ padImg:"Wii-U-GamePad.jpg",padq:"Wii U GamePad controller",padName:"Wii U GamePad — a screen in the controller",btn:12,
+ spec:[["Processor","IBM 'Espresso', 3 cores @ 1.24 GHz"],["Memory","2 GB DDR3"],["Media","25 GB proprietary disc"],["Graphics","AMD 'Latte' @ 550 MHz — first Nintendo HD console"],["Controller","6.2-inch 854×480 touchscreen GamePad"]],
+ story:"Nintendo's worst-selling home console, and the cause was mostly the name. Shoppers thought the Wii U was an add-on for the Wii they already owned, and Nintendo's marketing never corrected that impression. The GamePad — a controller with a screen in it, letting one player see something different from everyone else — was a good idea trapped in a machine that developers had already abandoned. It sold 13.56 million in four years. The Wii sold that in three months.",
+ rival:"Lost to the PS4 and Xbox One by a factor of eight, and effectively ceded the generation before it started.",
+ legacy:"Almost its entire library was rebuilt for the Switch and sold enormously there. Mario Kart 8 alone went from 8.46 million to over 68 million once it moved house. Splatoon and Super Mario Maker both started here.",
+ games:[
+ {t:"Super Mario 3D World",y:2013,d:"Four-player 3D Mario, and a cat suit. Underplayed and superb."},
+ {t:"Splatoon",y:2015,d:"A brand new Nintendo franchise, which almost never happens."},
+ {t:"Mario Kart 8",y:2014,d:"Anti-gravity tracks and the best-looking racer of its year."},
+ {t:"Bayonetta 2",y:2014,d:"Nintendo funded it after Sega passed. An unlikely exclusive."},
+ {t:"Super Mario Maker",y:2015,d:"Build the levels yourself, using thirty years of Mario parts."},
+ {t:"Xenoblade Chronicles X",y:2015,d:"An enormous open world, still not on any later console until 2025."},
+ {t:"Donkey Kong Country: Tropical Freeze",y:2014,d:"Retro Studios doing 2D. Ferociously well made."},
+ {t:"Pikmin 3",y:2013,d:"A thirteen-year wait, and the GamePad map genuinely helped."},
+ {t:"The Legend of Zelda: Breath of the Wild",y:2017,d:"Launched on the Wii U the same day as the Switch. A farewell."},
+ {t:"Nintendo Land",y:2012,d:"The pack-in that showed what the GamePad was for."}]},
+
+{g:8,id:"ps4",name:"PlayStation 4",aka:"Later the Pro, in 2016",maker:"Sony",jp:"Feb 22, 2014",na:"Nov 15, 2013",end:"2021",sold:"117.2 million",price:"$399",
+ img:"PS4-Console-Set.jpg",imgq:"Sony PlayStation 4 console",
+ padImg:"DualShock-4-Controller.jpg",padq:"Sony DualShock 4 controller",padName:"DualShock 4 — touchpad and light bar",btn:14,
+ spec:[["Processor","AMD Jaguar, 8 cores @ 1.6 GHz"],["Memory","8 GB GDDR5, unified"],["Media","Blu-ray"],["Graphics","AMD GCN, 1.84 TFLOPS"],["Choice","x86 architecture — easy to develop for, on purpose"]],
+ story:"Sony learned everything from the PS3. It used standard x86 parts so developers could work immediately, priced $100 under the Xbox One, and at the 2013 reveal made a 22-second video explaining how to lend a friend a game — a direct answer to Microsoft's confused used-game policies. The room applauded for a minute. Sony won that generation in the first week and never gave the lead back.",
+ rival:"Roughly two units sold for every Xbox One, from launch to the end.",
+ legacy:"Made the studio-driven single-player exclusive the centre of Sony's identity — God of War, Spider-Man, Horizon, The Last of Us Part II. It also normalised the mid-generation upgrade with the PS4 Pro.",
+ games:[
+ {t:"God of War",y:2018,d:"One unbroken camera shot for the whole game. A total reinvention."},
+ {t:"Bloodborne",y:2015,d:"FromSoftware in Victorian gothic. Still exclusive, still unmatched."},
+ {t:"Marvel's Spider-Man",y:2018,d:"The best web-swinging anyone has managed, by a wide margin."},
+ {t:"The Last of Us Part II",y:2020,d:"Divisive by design, and technically the peak of the hardware."},
+ {t:"Red Dead Redemption 2",y:2018,d:"Eight years of development. Detail bordering on obsessive."},
+ {t:"Horizon Zero Dawn",y:2017,d:"Robot dinosaurs, and a genuinely good science-fiction mystery."},
+ {t:"Persona 5",y:2016,d:"The most stylish user interface ever put in a game."},
+ {t:"Ghost of Tsushima",y:2020,d:"Wind guides you instead of a map marker."},
+ {t:"Uncharted 4",y:2016,d:"Naughty Dog closing out a series on its own terms."},
+ {t:"The Witcher 3: Wild Hunt",y:2015,d:"Side quests written better than most games' main stories."}]},
+
+{g:8,id:"xone",name:"Xbox One",aka:"Later the S and the X",maker:"Microsoft",jp:"Sept 4, 2014",na:"Nov 22, 2013",end:"2020",sold:"≈58 million",price:"$499 (with Kinect)",
+ img:"Xbox-One-Console-Set.jpg",imgq:"Microsoft Xbox One console",
+ padImg:"Xbox-One-Controller.jpg",padq:"Xbox One wireless controller",padName:"Xbox One controller — rumble in the triggers",btn:11,
+ spec:[["Processor","AMD Jaguar, 8 cores @ 1.75 GHz"],["Memory","8 GB DDR3"],["Media","Blu-ray"],["Graphics","AMD GCN, 1.31 TFLOPS"],["Launch bundle","Kinect camera, mandatory, $100 of the price"]],
+ story:"Microsoft announced a console that required an internet check-in every 24 hours, restricted lending games, and shipped with a camera you couldn't unplug — and spent most of the reveal talking about television. The backlash was immediate and Microsoft reversed the policies within three weeks, but the damage held for the entire generation. What it did next was more interesting: Game Pass, backwards compatibility all the way to the original Xbox, and play-anywhere between console and PC.",
+ rival:"Lost to the PS4 roughly two to one, and stopped publicly reporting sales figures in 2015.",
+ legacy:"Microsoft gave up on winning the box and started competing on the subscription instead. Game Pass, launched here in 2017, is the strategy the whole company now runs on.",
+ games:[
+ {t:"Forza Horizon 4",y:2018,d:"A shared open world where the seasons changed weekly for everyone."},
+ {t:"Ori and the Blind Forest",y:2015,d:"Hand-painted, precise, and quietly devastating."},
+ {t:"Halo: The Master Chief Collection",y:2014,d:"A disastrous launch, patched over years into something excellent."},
+ {t:"Cuphead",y:2017,d:"Hand-inked 1930s animation, frame by frame. Brutally hard."},
+ {t:"Sunset Overdrive",y:2014,d:"Insomniac being funny and fast. Deserved far more players."},
+ {t:"Titanfall",y:2014,d:"Wall-running and mechs, from the people who made Call of Duty."},
+ {t:"Gears 5",y:2019,d:"The best-looking game on the hardware, and the best-playing Gears."},
+ {t:"Sea of Thieves",y:2018,d:"Empty at launch, then became a genuine community."},
+ {t:"Rare Replay",y:2015,d:"Thirty Rare games for $30. A preservation project as a product."},
+ {t:"Minecraft",y:2014,d:"Microsoft bought Mojang for $2.5 billion. It has aged well."}]},
+
+{g:8,id:"switch",name:"Nintendo Switch",aka:"Codename NX",maker:"Nintendo",jp:"March 3, 2017",na:"March 3, 2017",end:"still on sale",sold:"156.59 million",price:"$299",
+ img:"Nintendo-Switch-Console-Docked-wJoyCons.jpg",imgq:"Nintendo Switch console docked Joy-Con",
+ padImg:"Nintendo-Switch-Joy-Con-Grip.jpg",padq:"Nintendo Switch Joy-Con controllers",padName:"Joy-Con — detachable, two players out of the box",btn:14,
+ spec:[["Processor","Custom NVIDIA Tegra X1"],["Memory","4 GB LPDDR4"],["Media","Game Card and digital"],["Screen","6.2-inch 720p (7-inch OLED from 2021)"],["Docked","1080p to the television"]],
+ story:"After the Wii U, Nintendo stopped making two product lines and made one. The Switch is a tablet that plays console games, slides into a dock, and hands you half its controller so a stranger can play too. It launched with The Legend of Zelda: Breath of the Wild, which was the review of the year, and never really slowed down. It has now outsold every console ever made except the PS2 and the DS.",
+ rival:"Not really in the same race. It competed on portability while Sony and Microsoft competed on resolution, and outsold both.",
+ legacy:"The hybrid form factor is now the default assumption for handheld PCs — the Steam Deck, the ROG Ally and the rest all descend from the argument the Switch settled.",
+ games:[
+ {t:"Mario Kart 8 Deluxe",y:2017,d:"Around 68 million. The best-selling racing game ever made."},
+ {t:"The Legend of Zelda: Breath of the Wild",y:2017,d:"34.06 million. Rebuilt open-world design from scratch."},
+ {t:"Animal Crossing: New Horizons",y:2020,d:"Around 48 million, most of it during a global lockdown."},
+ {t:"Super Smash Bros. Ultimate",y:2018,d:"38.14 million. Every fighter from every previous game, all of them."},
+ {t:"Super Mario Odyssey",y:2017,d:"Around 29 million. Throw your hat, become the thing it lands on."},
+ {t:"The Legend of Zelda: Tears of the Kingdom",y:2023,d:"A physics sandbox bolted onto an already enormous world."},
+ {t:"Splatoon 3",y:2022,d:"Nintendo's competitive shooter, and a Japanese phenomenon."},
+ {t:"Super Mario Bros. Wonder",y:2023,d:"17.44 million. 2D Mario allowed to be genuinely strange again."},
+ {t:"Metroid Dread",y:2021,d:"A nineteen-year wait for Metroid 5. It was worth it."},
+ {t:"Ring Fit Adventure",y:2019,d:"An RPG you play by doing squats. It sold 15 million copies."}]},
+
+/* ---------------- GEN 9 ---------------- */
+{g:9,id:"ps5",name:"PlayStation 5",aka:"Pro model from Nov 2024",maker:"Sony",jp:"Nov 12, 2020",na:"Nov 12, 2020",end:"still on sale",sold:"93.7 million (March 2026)",price:"$499 / $399 Digital",
+ img:"PlayStation-5-Console-and-Controller.jpg",imgq:"Sony PlayStation 5 console",
+ padImg:"Sony-PlayStation-5-DualSense.jpg",padq:"Sony DualSense controller PS5",padName:"DualSense — haptics and adaptive triggers",btn:15,
+ spec:[["Processor","AMD Zen 2, 8 cores @ 3.5 GHz"],["Memory","16 GB GDDR6"],["Storage","825 GB custom SSD, ~5.5 GB/s"],["Graphics","AMD RDNA 2, 10.28 TFLOPS, ray tracing"],["Controller","Adaptive trigger resistance and fine haptics"]],
+ story:"The headline feature isn't the graphics — it's the storage. Sony built a custom SSD and decompression hardware so that loading screens largely stopped existing, which quietly changed how games are structured. The DualSense is the other real advance: the triggers push back with variable resistance, so drawing a bow feels different from pulling a brake. Launch was crippled for two years by a global chip shortage and by scalping bots.",
+ rival:"Comfortably ahead of the Xbox Series consoles, roughly three to one.",
+ legacy:"Still being written. Sony's argument this generation is that the best exclusives and the fastest storage matter more than raw teraflops, and so far the sales agree.",
+ games:[
+ {t:"Astro Bot",y:2024,d:"A celebration of PlayStation history, and the best use of the DualSense."},
+ {t:"Elden Ring",y:2022,d:"FromSoftware plus George R. R. Martin. Over 30 million sold."},
+ {t:"God of War Ragnarök",y:2022,d:"Closes the Norse story with more restraint than the last one."},
+ {t:"Marvel's Spider-Man 2",y:2023,d:"Two Spider-Men, and an open Manhattan with no loading."},
+ {t:"Baldur's Gate 3",y:2023,d:"A tabletop RPG rendered honestly, with consequences that stick."},
+ {t:"Demon's Souls",y:2020,d:"A launch remake that showed what the SSD actually meant."},
+ {t:"Returnal",y:2021,d:"A roguelike shooter that uses the haptics better than almost anything."},
+ {t:"Final Fantasy VII Rebirth",y:2024,d:"The middle chapter of a three-part remake, and the best of them."},
+ {t:"Helldivers 2",y:2024,d:"Friendly fire is always on. A co-op phenomenon out of nowhere."},
+ {t:"Ratchet & Clank: Rift Apart",y:2021,d:"Jumps between whole worlds mid-jump, with no load at all."}]},
+
+{g:9,id:"xseries",name:"Xbox Series X | S",aka:"Two consoles, one generation",maker:"Microsoft",jp:"Nov 10, 2020",na:"Nov 10, 2020",end:"still on sale",sold:"≈35 million (estimate)",price:"$499 (X) / $299 (S)",
+ img:"Xbox-Series-X-Console.jpg",imgq:"Microsoft Xbox Series X console",
+ padImg:"Xbox-Series-X-Controller.jpg",padq:"Xbox Series X wireless controller",padName:"Xbox Wireless Controller — added a Share button",btn:12,
+ spec:[["Processor","AMD Zen 2, 8 cores @ 3.8 GHz"],["Memory","16 GB GDDR6 (X) / 10 GB (S)"],["Storage","1 TB NVMe (X) / 512 GB (S)"],["Graphics","12.15 TFLOPS (X) / 4.0 TFLOPS (S)"],["Feature","Quick Resume — several games suspended at once"]],
+ story:"The Series X was the most powerful console ever built at launch, and it did not matter much. Microsoft's actual product this generation is Game Pass: a subscription where first-party games appear on release day, which reframes the console as a way to access a library rather than a thing you buy games for. Then it bought Bethesda for $7.5 billion and Activision Blizzard for $68.7 billion, the largest deal in the industry's history.",
+ rival:"Third by units, and increasingly uninterested in that scoreboard — its games now ship on PlayStation too.",
+ legacy:"Backwards compatibility here reaches back four generations to the original Xbox, with automatic resolution and frame-rate improvements. Whatever happens to the hardware, that preservation work is real.",
+ games:[
+ {t:"Forza Horizon 5",y:2021,d:"Mexico, and the most generous racing game ever made."},
+ {t:"Halo Infinite",y:2021,d:"A rocky launch, but the best Halo has felt in fifteen years."},
+ {t:"Hi-Fi Rush",y:2023,d:"Shadow-dropped with no marketing. Everything moves to the beat."},
+ {t:"Elden Ring",y:2022,d:"Runs beautifully here too — and it's the game of the generation."},
+ {t:"Starfield",y:2023,d:"A thousand planets. Divisive, ambitious, unmistakably Bethesda."},
+ {t:"Microsoft Flight Simulator",y:2021,d:"The whole planet, streamed from satellite data, at 1:1 scale."},
+ {t:"Baldur's Gate 3",y:2023,d:"Arrived late on Xbox because split-screen took time to solve."},
+ {t:"Sea of Thieves",y:2018,d:"Years of updates turned it into one of the best co-op games there is."},
+ {t:"Indiana Jones and the Great Circle",y:2024,d:"First-person adventure that respects the films it comes from."},
+ {t:"Diablo IV",y:2023,d:"The first big release after the Activision Blizzard purchase."}]},
+
+{g:9,id:"switch2",name:"Nintendo Switch 2",aka:"The newest one",maker:"Nintendo",jp:"June 5, 2025",na:"June 5, 2025",end:"current",sold:"23.68 million (June 2026)",price:"$449.99",
+ img:"Nintendo-Switch-2-Console.jpg",imgq:"Nintendo Switch 2 console",
+ padImg:"Nintendo-Switch-2-Joy-Con.jpg",padq:"Nintendo Switch 2 Joy-Con controller",padName:"Joy-Con 2 — magnetic, and works as a mouse",btn:15,
+ spec:[["Processor","Custom NVIDIA T239"],["Memory","12 GB LPDDR5X"],["Storage","256 GB internal"],["Screen","7.9-inch 1080p LCD, 120 Hz, HDR"],["Docked","Up to 4K to the television"]],
+ story:"A sequel rather than a reinvention — bigger screen, far more power, and the same idea. The Joy-Con 2 attach magnetically instead of sliding, and each one works as a mouse when you lay it on its side, which is a genuinely new input nobody expected. It passed the GameCube's entire lifetime sales in about thirteen months, and Circana ranked it the second fastest-selling gaming system in American history.",
+ rival:"Selling faster than the original Switch did at the same point, and outshipping the PS5 quarter on quarter.",
+ legacy:"Too early to say. What is already clear is that Nintendo has stopped treating each console as a fresh start — the Switch 2 plays most of the Switch library, which is the first real generational bridge Nintendo has ever built.",
+ games:[
+ {t:"Mario Kart World",y:2025,d:"14.70 million. One connected open world instead of separate tracks."},
+ {t:"Donkey Kong Bananza",y:2025,d:"Fully destructible terrain — dig through anything you can see."},
+ {t:"Tomodachi Life: Living the Dream",y:2026,d:"Over 8 million in months. Nobody predicted this one."},
+ {t:"Metroid Prime 4: Beyond",y:2025,d:"Announced in 2017, restarted from scratch, finally arrived."},
+ {t:"Kirby Air Riders",y:2025,d:"Sakurai returning to a GameCube racer 22 years later."},
+ {t:"Pokémon Legends: Z-A",y:2025,d:"Lumiose City, rebuilt, with real-time battles."},
+ {t:"Hyrule Warriors: Age of Imprisonment",y:2025,d:"The Imprisoning War, as a thousand-enemy brawler."},
+ {t:"Drag x Drive",y:2025,d:"Wheelchair basketball, played with both Joy-Con as mice."},
+ {t:"Pokémon Pokopia",y:2026,d:"You play as a Ditto building a town. Genuinely charming."},
+ {t:"Super Mario Galaxy 1 + 2",y:2025,d:"Two of the best games ever made, finally portable."}]}
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const PORTABLE = new Set(["gameboy","lynx","gamegear","gbc","gba","ds","psp","3ds","vita","switch","switch2"]);
+const yrOf = c => Math.min(...[c.jp,c.na].map(s=>{const m=/\d{4}/.exec(s||""); return m?+m[0]:9999;}));
+const esc = s => String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const gcol = g => getComputedStyle(document.documentElement).getPropertyValue("--g"+g).trim();
+
+/* ---- Wikimedia Commons image resolver: exact filename, then search ---- */
+const API = "https://commons.wikimedia.org/w/api.php";
+const memo = new Map();
+const AVOID = /logo|wordmark|icon|box|cover|cartridge|sticker|advert|poster|screenshot|schematic|diagram|chip|motherboard|pcb|teardown|repair|svg/i;
+function pick(pages, query){
+  if(!pages) return null;
+  const words = (query||"").toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  const list = Object.values(pages)
+    .filter(p => /\.(jpe?g|png)$/i.test(p.title||"") && p.imageinfo && p.imageinfo[0])
+    .map(p => {
+      const t = (p.title||"").toLowerCase();
+      let s = -(p.index || 0) * 0.5;
+      words.forEach(w => { if(t.indexOf(w) > -1) s += 6; });
+      if(AVOID.test(t)) s -= 40;
+      return {p, s};
+    })
+    .sort((a,b) => b.s - a.s);
+  if(!list.length) return null;
+  const ii = list[0].p.imageinfo[0];
+  return ii.thumburl || ii.url;
+}
+function resolve(file, query){
+  const k = file+"|"+query;
+  if(memo.has(k)) return memo.get(k);
+  const job = (async () => {
+    const common = "?action=query&format=json&origin=*&prop=imageinfo&iiprop=url&iiurlwidth=700";
+    try{
+      const r = await fetch(API+common+"&titles="+encodeURIComponent("File:"+file));
+      const hit = pick((await r.json()).query.pages, file);
+      if(hit) return hit;
+    }catch(e){}
+    try{
+      const r = await fetch(API+common+"&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch="+encodeURIComponent(query));
+      const hit = pick((await r.json()).query.pages, query);
+      if(hit) return hit;
+    }catch(e){}
+    return null;
+  })();
+  memo.set(k, job);
+  return job;
+}
+const lazy = new IntersectionObserver((entries, obs) => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    obs.unobserve(e.target);
+    const box = e.target, img = box.querySelector("img"), ph = box.querySelector(".ph");
+    resolve(box.dataset.file, box.dataset.q).then(url => {
+      if(!url) return;
+      img.onload = () => { img.classList.add("in"); if(ph) ph.style.display = "none"; };
+      img.src = url;
+    });
+  });
+}, {rootMargin:"350px"});
+
+function shot(file, q, label, tag){
+  return '<div class="shot" data-file="'+esc(file)+'" data-q="'+esc(q)+'">'+
+    '<span class="ph"><b>[ ]</b>'+esc(label)+'</span>'+
+    '<img alt="'+esc(label)+'" loading="lazy">'+
+    (tag ? '<span class="tag">'+esc(tag)+'</span>' : '')+'</div>';
+}
+
+/* ---- stat bar ---- */
+document.getElementById("statbar").innerHTML = [
+  ["34","machines"],["53","years"],["9","generations"],
+  ["340","games listed"],["160.0M","best seller — PS2"]
+].map(([b,s]) => "<div><b>"+b+"</b><small>"+s+"</small></div>").join("");
+
+/* ---- generation nav ---- */
+const nav = document.getElementById("gennav");
+GENS.forEach(G => {
+  const a = document.createElement("a");
+  a.className = "chip"; a.href = "#gen"+G.g;
+  a.innerHTML = '<span class="dot" style="background:var(--g'+G.g+')"></span>GEN '+G.g;
+  nav.appendChild(a);
+});
+["The consoles","The controllers"].forEach((t,i) => {
+  const a = document.createElement("a");
+  a.className = "chip"; a.href = i ? "#evo-controllers" : "#evo-consoles";
+  a.textContent = "▸ " + t; nav.appendChild(a);
+});
+
+/* ---- filters ---- */
+const FILTERS = [["all","Everything"],["Nintendo","Nintendo"],["Sega","Sega"],["Sony","Sony"],
+                 ["Microsoft","Microsoft"],["Atari","Atari"],["portable","Portable"]];
+const fbox = document.getElementById("filters");
+FILTERS.forEach(([k,label],i) => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button"; b.dataset.k = k; b.textContent = label;
+  if(!i) b.dataset.on = "1";
+  b.onclick = () => {
+    fbox.querySelectorAll(".chip").forEach(c => c.removeAttribute("data-on"));
+    b.dataset.on = "1"; applyFilter(k);
+  };
+  fbox.appendChild(b);
+});
+const counter = document.createElement("span");
+counter.className = "count"; fbox.appendChild(counter);
+
+function applyFilter(k){
+  let n = 0;
+  D.forEach(c => {
+    const card = document.getElementById("c-"+c.id);
+    const ok = k === "all" || (k === "portable" ? PORTABLE.has(c.id) : c.maker.indexOf(k) === 0);
+    card.classList.toggle("hide", !ok);
+    if(ok) n++;
+  });
+  GENS.forEach(G => {
+    const sec = document.getElementById("gen"+G.g);
+    sec.style.display = sec.querySelectorAll(".card:not(.hide)").length ? "" : "none";
+  });
+  counter.textContent = n + " of 34 shown";
+}
+
+/* ---- generation sections and console cards ---- */
+const out = document.getElementById("gens");
+GENS.forEach(G => {
+  const sec = document.createElement("section");
+  sec.className = "gen"; sec.id = "gen" + G.g;
+  sec.style.setProperty("--gc", "var(--g"+G.g+")");
+  sec.innerHTML =
+    '<div class="genband">'+
+      '<div class="num">'+G.g+'</div>'+
+      '<div class="meta"><div class="span">GENERATION '+G.g+' &nbsp;·&nbsp; '+G.years+'</div>'+
+      '<h2>'+esc(G.title)+'</h2><p>'+esc(G.blurb)+'</p></div>'+
+    '</div>';
+
+  D.filter(c => c.g === G.g).forEach(c => {
+    const card = document.createElement("article");
+    card.className = "card"; card.id = "c-" + c.id;
+    card.style.setProperty("--gc", "var(--g"+G.g+")");
+    card.innerHTML =
+      '<div class="top">'+
+        '<div class="shots">'+
+          shot(c.img, c.imgq, c.name, "THE MACHINE")+
+          shot(c.padImg, c.padq, c.padName, "THE CONTROLLER")+
+        '</div>'+
+        '<div class="body">'+
+          '<span class="badge">'+esc(c.maker.toUpperCase())+'</span>'+
+          '<h3>'+esc(c.name)+'</h3>'+
+          '<div class="aka">'+esc(c.aka)+'</div>'+
+          '<div class="dates">'+
+            '<div><small>Japan</small><b>'+esc(c.jp)+'</b></div>'+
+            '<div><small>North America</small><b>'+esc(c.na)+'</b></div>'+
+            '<div><small>Discontinued</small><b>'+esc(c.end)+'</b></div>'+
+            '<div><small>Units sold</small><b>'+esc(c.sold)+'</b></div>'+
+            '<div><small>Launch price</small><b>'+esc(c.price)+'</b></div>'+
+          '</div>'+
+          '<p class="story">'+esc(c.story)+'</p>'+
+          '<div class="notes">'+
+            '<section><h4>WHO IT WAS FIGHTING</h4><p>'+esc(c.rival)+'</p></section>'+
+            '<section><h4>WHAT IT LEFT BEHIND</h4><p>'+esc(c.legacy)+'</p></section>'+
+          '</div>'+
+          '<div class="plate">'+
+            '<div class="ph"><span>HARDWARE</span><span>'+esc(c.name.toUpperCase())+'</span></div>'+
+            '<dl>'+c.spec.map(([k,v]) => "<dt>"+esc(k)+"</dt><dd>"+esc(v)+"</dd>").join("")+'</dl>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<button class="toggle" type="button" aria-expanded="false">'+
+        '<span>Top ten games &nbsp;·&nbsp; '+esc(c.name)+'</span><span class="arw">▶</span></button>'+
+      '<div class="games"><ol>'+
+        c.games.map((g,i) =>
+          '<li><span class="n">'+(i+1)+'</span><span><span class="t">'+esc(g.t)+'</span> '+
+          '<span class="y">'+g.y+'</span><span class="d">'+esc(g.d)+'</span></span></li>').join("")+
+      '</ol></div>';
+    const tog = card.querySelector(".toggle");
+    tog.onclick = () => {
+      const open = card.classList.toggle("open");
+      tog.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+    sec.appendChild(card);
+  });
+  out.appendChild(sec);
+});
+
+/* ---- evolution strips ---- */
+const ordered = D.slice().sort((a,b) => yrOf(a) - yrOf(b));
+function strip(el, useCtrl){
+  el.innerHTML = ordered.map(c =>
+    '<button class="cellx" type="button" data-go="c-'+c.id+'" style="--gc:var(--g'+c.g+')">'+
+      '<div class="bar"></div>'+
+      '<div class="frame" data-file="'+esc(useCtrl?c.padImg:c.img)+'" data-q="'+esc(useCtrl?c.padq:c.imgq)+'">'+
+        '<span class="ph" style="position:absolute;font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:#8A8A82;padding:8px;text-align:center">'+esc(useCtrl?"controller":"console")+'</span>'+
+        '<img alt="'+esc(c.name)+(useCtrl?" controller":"")+'" loading="lazy">'+
+      '</div>'+
+      '<div class="cap"><div class="yr">'+yrOf(c)+'</div><div class="nm">'+esc(c.name)+'</div></div>'+
+    '</button>').join("");
+  el.querySelectorAll(".cellx").forEach(b => {
+    b.onclick = () => {
+      fbox.querySelectorAll(".chip").forEach(c => c.removeAttribute("data-on"));
+      fbox.querySelector('[data-k="all"]').dataset.on = "1";
+      applyFilter("all");
+      const t = document.getElementById(b.dataset.go);
+      t.classList.add("open");
+      t.querySelector(".toggle").setAttribute("aria-expanded","true");
+      t.scrollIntoView({behavior:"smooth", block:"start"});
+    };
+  });
+  el.querySelectorAll(".frame").forEach(f => {
+    f.style.position = "relative"; lazy.observe(f);
+  });
+}
+strip(document.getElementById("strip-consoles"), false);
+strip(document.getElementById("strip-pads"), true);
+
+/* ---- button count chart ---- */
+const maxBtn = Math.max(...D.map(c => c.btn));
+document.getElementById("btnchart").innerHTML = ordered.map(c =>
+  '<div class="row" style="--gc:var(--g'+c.g+')">'+
+    '<div class="lb">'+esc(c.name)+'</div>'+
+    '<div class="tr"><div class="fl" data-w="'+(c.btn/maxBtn*100)+'"></div></div>'+
+    '<div class="vl">'+c.btn+'</div>'+
+  '</div>').join("");
+const chartObs = new IntersectionObserver((es, o) => {
+  es.forEach(e => {
+    if(!e.isIntersecting) return;
+    o.unobserve(e.target);
+    e.target.querySelectorAll(".fl").forEach((f,i) =>
+      setTimeout(() => { f.style.width = f.dataset.w + "%"; }, i * 28));
+  });
+}, {threshold:0.06});
+chartObs.observe(document.getElementById("btnchart"));
+
+/* ---- start loading card images ---- */
+document.querySelectorAll(".card .shot").forEach(s => lazy.observe(s));
+applyFilter("all");
+</script>
+</body>
+</html>
